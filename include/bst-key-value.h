@@ -848,7 +848,7 @@ template<class Key, class Value> bool bstree<Key, Value>::remove(Key key) noexce
 
       Node *parent = pnode->parent; 
       
-      pnode = std::move(pchild); // Will delete pnode's underlying memory and 
+      pnode = std::move(pchild); // This will delete pnode's underlying memory and replace the managed pointer with pchild's raw pointer.
       
       pnode->parent = parent;
   }
