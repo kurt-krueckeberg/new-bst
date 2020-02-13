@@ -1,0 +1,10 @@
+Makefile
+dist/
+build/
+nbproject/
+.dep.inc
+*.mk
+*.orig
+*~
+.*~
+x
