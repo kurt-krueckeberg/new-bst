@@ -825,18 +825,23 @@ template<class Key, class Value> bool bstree<Key, Value>::remove(Key key) noexce
       /*
        Otherwise, pnode has both a left and a right child. We find pnode's successor y, which lies in pnode's right subtree
        and has no left child. We want to splice y out of its current location and have it replace pnode in the tree. There are
-       two cases o consider:
+       two cases to consider:
       
        1. If y is pnode's right child, then we replace pnode by y, leaving y’s right child alone.
       
        2. Otherwise, y lies within pnode's right subtree but is not pnode's right child (part (d)). In this case, we first
           replace y by its own right child, and then we replace pnode by y.
+
+       My Comment: The second case seems to imply recursion.
       */
+      
       std::unique_ptr<Node>& successor = getSuccessor(pnode);
 
+      /*--
       pnode->__vt = std::move(successor->__vt);  // move the successor's key and value into pnode. Do not alter pnode's parent or left and right children.
 
       successor.reset(); // safely delete leaf pnode successor
+      --*/
 
   } else { 
 
