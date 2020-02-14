@@ -72,7 +72,8 @@ template<class Key, class Value> class bstree {
 
         Node(Node&&); // ...but we allow move assignment and move construction.
 
-       ~Node() = default; // TODO: When left and right are all implicitly deleted, resulting in the deletion of all nodes in the subtree 
+        // TODO: When left and right are all implicitly deleted, resulting in the deletion of all nodes in the subtree. Do we call left->release() and right->release()? 
+       ~Node() = default; 
 
         std::ostream& print(std::ostream& ostr) const noexcept; 
 
