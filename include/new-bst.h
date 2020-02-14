@@ -238,7 +238,7 @@ Some of the std::map insert methods:
   
     bstree() noexcept : root{nullptr}, size{0} { }
 
-   ~bstree() noexcept = default; // does post-order like member destruction
+   ~bstree() noexcept = default; // TODO: This will cause the stack to overflow. Instead to a post-order traversal deleting nodes. 
 
     bstree(std::initializer_list<value_type>& list) noexcept; 
 
@@ -806,81 +806,26 @@ template<class Key, class Value> bool bstree<Key, Value>::remove(Key key) noexce
   return true; 
 }
 
-template<class Key, class Value> bool bstree<Key, Value>::remove(Key key) noexcept
-{
-  Node *pfound = find(key, root);
-  
-  if (pfound == nullptr) return false;
-
-  // Getthe managing unique_ptr<Node> whose underlying raw point is pfound. 
-  std::unique_ptr<Node>& pnode = get_unique_ptr(pfound);
-
-  // There are three cases to consider 
-  // case 1: If both children are nullptr, we can simply delete pnode. 
-  if (!pnode->left && !pnode->right) 
-      
-      pnode.reset();    
-         
-  } else if (pnode->left && p->right) { // pnode has two children
-      /*
-       Otherwise, pnode has both a left and a right child. We find pnode's successor y, which lies in pnode's right subtree
-       and has no left child. We want to splice y out of its current location and have it replace pnode in the tree. There are
-       two cases to consider:
-      
-       1. If y is pnode's right child, then we replace pnode by y, leaving y’s right child alone.
-      
-       2. Otherwise, y lies within pnode's right subtree but is not pnode's right child (part (d)). In this case, we first
-          replace y by its own right child, and then we replace pnode by y.
-
-       My Comment: The second case seems to imply recursion.
-      */
-      
-      std::unique_ptr<Node>& successor = getSuccessor(pnode);
-
-      /*--
-      pnode->__vt = std::move(successor->__vt);  // move the successor's key and value into pnode. Do not alter pnode's parent or left and right children.
-
-      successor.reset(); // safely delete leaf pnode successor
-      --*/
-
-  } else { 
-
-     // Case 3:  If pnode has just one child, then we elevate that child to take pnode's position in the tree
-     // by modifying pnode's parent to replace pnode by it's child.
-      std::unique_ptr<Node>& pchild = pnode->left ? pnode->left : pnode->right; // Get the only child.
-
-      //--std::unique_ptr<Node>& pnode_owner = (pnode->parent->left == pnode) ? pnode->parent->left : pnode->parent->right; // Get the owner of pnode. 
-
-      Node *parent = pnode->parent; 
-      
-      pnode = std::move(pchild); // This will delete pnode's underlying memory and replace the managed pointer with pchild's raw pointer.
-      
-      pnode->parent = parent;
-  }
-
-  --size; 
-
-  return true; 
-}
 template<class Key, class Value> void bstree<Key, Value>::transplant(std::unique_ptr<Node>& u, std::unique_ptr<Node>& v)
 {
 /*
 TODO:
-The code below deals with raw pointers and does not concern itself with freeing memory (I don't think). When you delete a unique_ptr<Node>, you delete not just one Node
-but its entire subtree, but in this routine we only want to delete one node.
+The pseudo code from Introduction to Algorithms deals with raw pointers (and does explicitly release memory). However, when you delete a unique_ptr<Node>, 
+its entire subtree is deleted, but in this routine we only want to delete one node.
 
-The question is how to best do this. How do we maintain the intent of this routine when modifying it for unique_ptr<Node>. unique_ptr<> methods:
+unique_ptr<> methods:
 
  Node *pnode.>release(); // relinquishes ownership
  pnode.swap(pother);     // swaps raw pointers
-unique_ptr<Node>>
+ move assignment
+
  */
    if (!u->parent)       // u->parent == NIL implies u is the root.
-       T->root = v; 
+       root = v; 
    else if (u == u->parent->left)
-      u->parent->left = v; // Correct?  Originally u->parent->left = v;
+      u->parent->left = v; 
    else 
-      u->parent->right = v; // Correct?  Originally u->parent->right = v;
+      u->parent->right = v; 
    if (v)               // u != NIL; 
       v->parent = u->parent 
 }
