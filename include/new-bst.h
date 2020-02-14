@@ -72,7 +72,7 @@ template<class Key, class Value> class bstree {
 
         Node(Node&&); // ...but we allow move assignment and move construction.
 
-       ~Node() = default; // members __vt, __left and right are all implicitly deleted. 
+       ~Node() = default; // TODO: When left and right are all implicitly deleted, resulting in the deletion of all nodes in the subtree 
 
         std::ostream& print(std::ostream& ostr) const noexcept; 
 
@@ -188,6 +188,8 @@ template<class Key, class Value> class bstree {
     
     Node *find(Key key, const std::unique_ptr<Node>&) const noexcept;
 
+    void destroy_tree(std::unique_ptr<Node>& current) noexcept;
+    
   public:
 /*
 
@@ -238,7 +240,12 @@ Some of the std::map insert methods:
   
     bstree() noexcept : root{nullptr}, size{0} { }
 
-   ~bstree() noexcept = default; // TODO: This will cause the stack to overflow. Instead to a post-order traversal deleting nodes. 
+    // While the default destructor successfully frees all nodes. A huge recursive call invokes every Node's destructor.
+    // will be invoke in one huge recursive call 
+   ~bstree() noexcept
+    {
+        destroy_tree(root);
+    } 
 
     bstree(std::initializer_list<value_type>& list) noexcept; 
 
@@ -550,7 +557,22 @@ template<class Key, class Value> template<typename Functor> void bstree<Key, Val
 
    f(current->__get_pair()); 
 }
+/*
+ * Post order node destruction
+ */
+template<class Key, class Value> void bstree<Key, Value>::destroy_tree(std::unique_ptr<Node>& current) noexcept
+{
+   if (current == nullptr) {
 
+      return;
+   }
+
+   destroy_tree(current->left);
+
+   DoPostOrderTraverse(current->right);
+
+   current.reset();
+}
 /*
  * Algorithm taken from page 290 of Introduction to Algorithms by Cormen, 3rd Edition, et. al.
  */
