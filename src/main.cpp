@@ -3,23 +3,38 @@
 #include <iostream>
 #include <initializer_list>
 #include "test.h"
-#include "new-bst.h"
+#include "bst.h"
 using namespace std;
 
 
 int main(int argc, char** argv) 
 {
   std::initializer_list<int> lst = {50, 39, 15, 65, 69, 50, 25, 20, 70, 100, 40, 34, 37, 30, 10, 33, 36, 38, 85, 90, 60, 35, 80, 89};
-  bstree<Test, Test> tree;
+  /*
+   * bstree<Test, Test> tree;
 
   for (const auto& i : lst) 
       tree.insert(Test{i}, Test{i});
-      
+   */
+   bstree<int, int> tree;
+
+  for (const auto& i : lst) 
+      tree.insert(i, i);
+  
   cout << tree;
+   
+  auto key_printer = [](const auto& pr) {
+      const auto&[key, value] = pr;
+      cout << key << ", ";
+  };
+  
+  tree.printlevelOrder(cout, key_printer);
+  
   cout << "predecessor of 37 should be 36. It is " << tree.test_p(37);
   cout << "\nsuccessor of 37 should be 39. It is " << tree.test_s(37);
+
   return 0;
-        
+  /*      
   cout << "This is the input tree " << tree << " printed in debug level order:\n";
   
   tree.debug_printlevelOrder(cout);
@@ -35,12 +50,13 @@ int main(int argc, char** argv)
           ++debug;
       }
                
-      tree.remove(Test{key});
+      //tree.remove(Test{key});
+      tree.remove(key);
 
       cout << "Tree after removal of Test{" << key << "}. " << tree; 
       cout << "\nLevel-order print after the removal of Test{" << key << "}\n";
       
-      tree.printlevelOrder(cout);
+      tree.printlevelOrder(cout, key_printer);
 
       cout << flush << "\nDebug print\n";
 
@@ -48,6 +64,7 @@ int main(int argc, char** argv)
   }
 
   return 0;
+*/
 /*
 
     bstree<Test, Test> tree1 = { 5, 15, 7, 17, 3, 13, 4, 14,  2, 12,  6, 16, 9, 19}; 

@@ -113,7 +113,7 @@ template<class Key, class Value> class bstree {
         }
     }; 
 
-   class NodeLevelOrderPrinter {
+   template<typename Printer> class NodeLevelOrderPrinter {
    
       std::ostream& ostr;
       int current_level;
@@ -154,7 +154,9 @@ template<class Key, class Value> class bstree {
               display_level(ostr, level);       
           }
          
-          (pnode->*pmf)(std::cout);
+          //--(pnode->*pmf)(std::cout);
+
+          f(pnode->__vt.__get_value());
          
           std::cout << '\n' << std::flush;
       }
