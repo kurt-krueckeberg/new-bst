@@ -173,7 +173,7 @@ template<class Key, class Value> class bstree {
 
     void copy_tree(const bstree<Key, Value>& lhs) noexcept;
 
-    Node *min(Node *current) const noexcept;
+    const Node *min(const Node *current) const noexcept;
    
     Node *getSuccessor(const Node *current) const noexcept;
    
@@ -643,7 +643,7 @@ template<class Key, class Value> std::pair<bool, const typename bstree<Key, Valu
   return {false, parent}; 
 }
 
-template<class Key, class Value> typename bstree<Key, Value>::Node *bstree<Key, Value>::min(typename bstree<Key, Value>::Node *current) const noexcept
+template<class Key, class Value> const typename bstree<Key, Value>::Node *bstree<Key, Value>::min(const typename bstree<Key, Value>::Node *current) const noexcept
 {
   while (current->left != nullptr) {
 
@@ -667,12 +667,13 @@ template<class Key, class Value>  typename bstree<Key, Value>::Node* bstree<Key,
   Node *ancestor = current->parent;
 
   // find the smallest ancestor of current whose left child is also an ancestor of current (by ascending the ancestor chain until we find the first ancestor that is a left child).
-  while(ancestor != nullptr && current == ancestor->right.get()) {
+  while(ancestor && current == ancestor->right.get()) {
 
        current = ancestor;
 
        ancestor = ancestor->parent;
   }
+
   return ancestor;
 }
 
