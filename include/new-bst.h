@@ -177,7 +177,7 @@ template<class Key, class Value> class bstree {
    
     const Node *getSuccessor(const Node *current) const noexcept;
    
-    const std::unique_ptr<Node>& get_unique_ptr(const Node *pnode) const noexcept;
+    std::unique_ptr<Node>& get_unique_ptr(const Node *pnode) const noexcept;
 
     std::pair<bool, const Node *> findNode(const key_type& key, const Node *current) const noexcept; 
 
@@ -508,7 +508,7 @@ template<class Key, class Value> inline bool bstree<Key, Value>::isEmpty() const
  * Input:  pnode is a raw Node *.
  * Return: A reference to the unique_ptr that manages pnode.
  */
-template<class Key, class Value> const std::unique_ptr<typename bstree<Key, Value>::Node>& bstree<Key, Value>::get_unique_ptr(const Node *pnode) const noexcept
+template<class Key, class Value> std::unique_ptr<typename bstree<Key, Value>::Node>& bstree<Key, Value>::get_unique_ptr(const Node *pnode) const noexcept
 {
   if (pnode->parent == nullptr) { // Is pnode the root? 
 
@@ -843,7 +843,7 @@ template<class Key, class Value> bool bstree<Key, Value>::remove(Key key) noexce
 
       Node *parent = pnode->parent;
             
-      pnode = std::move(node->left);
+      pnode = std::move(pnode->left);
       
       pnode->parent = parent;
 
@@ -858,7 +858,7 @@ template<class Key, class Value> bool bstree<Key, Value>::remove(Key key) noexce
        2. Otherwise, y lies within pnode's right subtree but is not pnode's right child (part (d)). In this case, we first
           replace y by its own right child, and then we replace pnode by y.
       */
-      std::unique_ptr<Node>& successor = getSuccessor(pnode);
+      auto successor = getSuccessor(pnode);
 
       pnode->__vt = std::move(successor->__vt);  // move the successor's key and value into pnode. Do not alter pnode's parent or left and right children.
 
@@ -869,7 +869,7 @@ template<class Key, class Value> bool bstree<Key, Value>::remove(Key key) noexce
 
   return true; 
 }
-
+/*
 template<class Key, class Value> void bstree<Key, Value>::transplant(std::unique_ptr<Node>& u, std::unique_ptr<Node>& v)
 {
 /*
@@ -883,7 +883,7 @@ unique_ptr<> methods:
  pnode.swap(pother);     // swaps raw pointers
  move assignment
 
- */
+
    if (!u->parent)       // u->parent == NIL implies u is the root.
        root = v; 
    else if (u == u->parent->left)
@@ -893,6 +893,7 @@ unique_ptr<> methods:
    if (v)               // u != NIL; 
       v->parent = u->parent 
 }
+ */
 
 template<class Key, class Value> inline int bstree<Key, Value>::height() const noexcept
 {
