@@ -190,25 +190,37 @@ template<class Key, class Value> class bstree {
     Node *find(Key key, const std::unique_ptr<Node>&) const noexcept;
 
     void destroy_tree(std::unique_ptr<Node>& current) noexcept;
-    
-    Node *predecessor(Key key) noexcept;
-    std::unique_ptr<Node>& predecessor(std::unique_ptr<Node>& current, Key key) noexcept;
 
-    Node *successor(Key key) noexcept;
-    std::unique_ptr<Node>& successor(std::unique_ptr<Node>& current, Key key) noexcept;
+    Node *get_floor(Key key) noexcept
+    {
+      auto& pnode = floor(root, key);
+   
+      return pnode.get();
+    }
+
+    std::unique_ptr<Node>& get_floor(std::unique_ptr<Node>& current, Key key) noexcept;
+    
+    Node *get_ceiling(Key key) noexcept
+    {
+      std::unique_ptr<Node>& pnode = ceiling(root, key);
+      
+      return pnode.get();
+    }
+
+    std::unique_ptr<Node>& get_ceiling(std::unique_ptr<Node>& current, Key key) noexcept;
 
   public:
 
-    Key test_p(Key key) noexcept
+    Key floor(Key key) const noexcept
     {
-        const Node *pnode = predecessor(key);
+        const Node *pnode = get_floor(key);
         
         return (pnode == nullptr) ? key : pnode->key();
     }
 
-    Key test_s(Key key) noexcept
+    Key ceiling(Key key) const noexcept
     {
-        const Node *pnode = successor(key);
+        const Node *pnode = get_ceiling(key);
         
         return (pnode == nullptr) ? key : pnode->key();
     }
@@ -655,26 +667,19 @@ template<class Key, class Value>  typename bstree<Key, Value>::Node* bstree<Key,
   return ancestor;
 }
 
-// predecessor() converted Java code of 'floor(Key key)' method from https://algs4.cs.princeton.edu/lectures/32BinarySearchTrees.pdf 
-// Test it. Add comments.
 template<class Key, class Value>  
-typename bstree<Key, Value>::Node *bstree<Key, Value>::predecessor(Key key) noexcept
-{
-   auto& pnode = predecessor(root, key);
-
-   return pnode.get();
-}
-
-template<class Key, class Value>  
-typename std::unique_ptr<typename bstree<Key, Value>::Node>& bstree<Key, Value>::predecessor(typename std::unique_ptr<typename bstree<Key, Value>::Node>& pnode, Key key) noexcept
+typename std::unique_ptr<typename bstree<Key, Value>::Node>& bstree<Key, Value>::get_floor(typename std::unique_ptr<typename bstree<Key, Value>::Node>& pnode, Key key) noexcept
 {   
    if (!pnode) 
        return pnode;
 
-   if (key < pnode->key())
-       return predecessor(pnode->left, key);
+   if (key == pnode->key()) 
+      return pnode;
 
-   auto& pnode_r = predecessor(pnode->right, key);
+   if (key < pnode->key())
+       return get_floor(pnode->left, key);
+
+   auto& pnode_r = get_floor(pnode->right, key);
 
    if (pnode_r) 
        return pnode_r;   
@@ -683,26 +688,21 @@ typename std::unique_ptr<typename bstree<Key, Value>::Node>& bstree<Key, Value>:
 }
 
 
-template<class Key, class Value>  
-typename bstree<Key, Value>::Node *bstree<Key, Value>::successor(Key key) noexcept
-{
-   std::unique_ptr<Node>& psuccessor = successor(root, key);
-   
-   return psuccessor.get();
-}
-
 /*
  * TODO: What is the terminating test for this algorithm? (taken from https://algs4.cs.princeton.edu/32bst/BST.java.html)
  */
 template<class Key, class Value>  
-typename std::unique_ptr<typename bstree<Key, Value>::Node>& bstree<Key, Value>::successor(std::unique_ptr<typename bstree<Key, Value>::Node>& pnode, Key key) noexcept
+typename std::unique_ptr<typename bstree<Key, Value>::Node>& bstree<Key, Value>::get_ceiling(std::unique_ptr<typename bstree<Key, Value>::Node>& pnode, Key key) noexcept
 {   
    if (!pnode)  // nullptr
        return pnode;
 
+   if (key == pnode->key()) 
+       return pnode;
+
    if(key < pnode->key()) {
 
-      auto& pnode_t = successor(pnode->left, key); 
+      auto& pnode_t = get_ceiling(pnode->left, key); 
 
       if (pnode_t)  // If pnode_t is not nullptr, return pnode_t
           return pnode_t;
@@ -710,7 +710,7 @@ typename std::unique_ptr<typename bstree<Key, Value>::Node>& bstree<Key, Value>:
           return pnode; // else return pnode
    }
 
-   return successor(pnode->right, key);
+   return get_ceiling(pnode->right, key);
 }
 
 template<class Key, class Value> void bstree<Key, Value>::insert(std::initializer_list<value_type>& list) noexcept 

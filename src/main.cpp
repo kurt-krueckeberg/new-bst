@@ -30,15 +30,22 @@ int main(int argc, char** argv)
   
   tree.printlevelOrder(cout, key_printer);
   
-  cout << "predecessor of 37 should be 36. It is " << tree.test_p(37);
-  cout << "\nsuccessor of 37 should be 39. It is " << tree.test_s(37);
+   cout << "floor(37) = " << tree.floor(37) << '\n';
+
+  cout << "ceiling(37) = " << tree.ceiling(37) << '\n';
  
+  //cout << "floor(41) = " << tree.test_floor(41) << '\n';
+
+  cout << "ceilling(41) = " << tree.ceiling(41) << '\n';
+
+/*
   auto printer_debug = [](const auto& pr) {
       const auto&[key, value] = pr;
       cout << key << ", ";
   };
 
   tree.printlevelOrder(cout, key_printer);
+*/
   return 0;
   /*      
   cout << "This is the input tree " << tree << " printed in debug level order:\n";

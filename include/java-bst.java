@@ -277,13 +277,23 @@ public class BST<Key extends Comparable<Key>, Value> {
         else return x.key;
     }
 
-    private Node ceiling(Node x, Key key) {
-        if (x == null) return null;
+    private Node ceiling(Node x, Key key)
+    {
+        if (x == null)
+            return null;
+
         int cmp = key.compareTo(x.key);
-        if (cmp == 0) return x;
+
+        if (cmp == 0) 
+            return x;
+
         if (cmp < 0) { 
+
             Node t = ceiling(x.left, key); 
-            if (t != null) return t;
+
+            if (t != null) 
+                return t;
+
             else return x; 
         } 
         return ceiling(x.right, key); 
