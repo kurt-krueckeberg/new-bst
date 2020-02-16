@@ -193,7 +193,7 @@ template<class Key, class Value> class bstree {
 
     Node *get_floor(Key key) const noexcept
     {
-      const auto& pnode = floor(root, key);
+      const auto& pnode = get_floor(root, key);
    
       return pnode.get();
     }
@@ -214,7 +214,7 @@ template<class Key, class Value> class bstree {
     Key floor(Key key) const 
     {
       if (isEmpty()) 
-            throw new std::logic_error("floor() called with empty tree");
+          throw new std::logic_error("floor() called with empty tree");
 
       const Node *pnode = get_floor(key);
       
@@ -321,12 +321,12 @@ Some of the std::map insert methods:
 
     void insert(std::initializer_list<value_type>& list) noexcept; 
 
-    void insert(const key_type& key, const mapped_type& value) noexcept
+    bool insert(const key_type& key, const mapped_type& value) noexcept
     {
         return insert_or_assign(key, value);
     }
 
-    void insert_or_assign(const key_type& key, const mapped_type& value) noexcept; // TODO: std::pair<cont Key, Value>
+    bool insert_or_assign(const key_type& key, const mapped_type& value) noexcept; // TODO: std::pair<cont Key, Value>
   
     // TODO: Add methods that take a pair<const Key, Value>
 
@@ -732,7 +732,7 @@ template<class Key, class Value> void bstree<Key, Value>::insert(std::initialize
  * Algorithm from page 294 of Introduction to Alogorithm, 3rd Edition by Cormen, et. al
  *
  */
-template<class Key, class Value> void bstree<Key, Value>::insert_or_assign(const key_type& key, const mapped_type& value) noexcept
+template<class Key, class Value> bool bstree<Key, Value>::insert_or_assign(const key_type& key, const mapped_type& value) noexcept
 {
   Node *parent = nullptr;
  
@@ -746,14 +746,14 @@ template<class Key, class Value> void bstree<Key, Value>::insert_or_assign(const
       if (key == current->key()) {
 
           current->value() = value;
-          return;
+          return false;
       }
  
       else if (key < current->key())
-            current = current->left.get();
-       else current = current->right.get();
+           current = current->left.get();
+      else
+           current = current->right.get();
   }     
- 
   std::unique_ptr<Node> node = std::make_unique<Node>(key, value, parent); 
   
   if (!parent)
@@ -762,6 +762,9 @@ template<class Key, class Value> void bstree<Key, Value>::insert_or_assign(const
        parent->left = std::move(node);
   else 
        parent->right = std::move(node);  
+
+  ++size;
+  return true;
 }
 
 /*

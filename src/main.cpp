@@ -11,13 +11,15 @@ using namespace std;
 int main(int argc, char** argv) 
 {
   std::initializer_list<int> lst = {50, 39, 15, 65, 69, 50, 25, 20, 70, 100, 40, 34, 37, 30, 10, 33, 36, 38, 85, 90, 60, 35, 80, 89};
+
+  bstree<int, int> tree;
+
   /*
    * bstree<Test, Test> tree;
 
   for (const auto& i : lst) 
       tree.insert(Test{i}, Test{i});
    */
-   bstree<int, int> tree;
 
   for (const auto& i : lst) 
       tree.insert(i, i);
@@ -31,14 +33,15 @@ int main(int argc, char** argv)
   
   tree.printlevelOrder(cout, key_printer);
   
-//   cout << "floor(37) = " << tree.floor(37) << '\n';
+  cout << "floor(37) = " << tree.floor(37) << '\n';
 
   cout << "ceiling(37) = " << tree.ceiling(37) << '\n';
  
-  //cout << "floor(41) = " << tree.test_floor(41) << '\n';
+  cout << "floor(41) = " << tree.floor(41) << '\n';
 
- // cout << "ceilling(41) = " << tree.ceiling(41) << '\n';
+  cout << "ceilling(41) = " << tree.ceiling(41) << '\n';
 
+  cout << "floor(-200) = " << tree.floor(-200) << '\n';
 /*
   auto printer_debug = [](const auto& pr) {
       const auto&[key, value] = pr;
