@@ -4,6 +4,7 @@
 #include <initializer_list>
 #include "test.h"
 #include "bst.h"
+
 using namespace std;
 
 
@@ -30,13 +31,13 @@ int main(int argc, char** argv)
   
   tree.printlevelOrder(cout, key_printer);
   
-   cout << "floor(37) = " << tree.floor(37) << '\n';
+//   cout << "floor(37) = " << tree.floor(37) << '\n';
 
   cout << "ceiling(37) = " << tree.ceiling(37) << '\n';
  
   //cout << "floor(41) = " << tree.test_floor(41) << '\n';
 
-  cout << "ceilling(41) = " << tree.ceiling(41) << '\n';
+ // cout << "ceilling(41) = " << tree.ceiling(41) << '\n';
 
 /*
   auto printer_debug = [](const auto& pr) {

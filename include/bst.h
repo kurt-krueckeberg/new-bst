@@ -191,40 +191,51 @@ template<class Key, class Value> class bstree {
 
     void destroy_tree(std::unique_ptr<Node>& current) noexcept;
 
-    Node *get_floor(Key key) noexcept
+    Node *get_floor(Key key) const noexcept
     {
-      auto& pnode = floor(root, key);
+      const auto& pnode = floor(root, key);
    
       return pnode.get();
     }
 
-    std::unique_ptr<Node>& get_floor(std::unique_ptr<Node>& current, Key key) noexcept;
+    const std::unique_ptr<Node>& get_floor(const std::unique_ptr<Node>& current, Key key) const noexcept;
     
-    Node *get_ceiling(Key key) noexcept
+    Node *get_ceiling(Key key) const noexcept
     {
-      std::unique_ptr<Node>& pnode = ceiling(root, key);
+      const std::unique_ptr<Node>& pnode = get_ceiling(root, key);
       
       return pnode.get();
     }
-
-    std::unique_ptr<Node>& get_ceiling(std::unique_ptr<Node>& current, Key key) noexcept;
+    
+    const std::unique_ptr<Node>& get_ceiling(const std::unique_ptr<Node>& current, Key key) const noexcept;
 
   public:
 
-    Key floor(Key key) const noexcept
+    Key floor(Key key) const 
     {
-        const Node *pnode = get_floor(key);
-        
-        return (pnode == nullptr) ? key : pnode->key();
+      if (isEmpty()) 
+            throw new std::logic_error("floor() called with empty tree");
+
+      const Node *pnode = get_floor(key);
+      
+      if (!pnode)
+          throw new std::logic_error("argument to floor() is too small");
+      else 
+           return pnode->key();
     }
 
-    Key ceiling(Key key) const noexcept
+    Key ceiling(Key key) const 
     {
-        const Node *pnode = get_ceiling(key);
-        
-        return (pnode == nullptr) ? key : pnode->key();
-    }
+      if (isEmpty()) 
+          throw new std::logic_error("floor() called with empty tree");
 
+      const Node *pnode = get_ceiling(key);
+       
+      if (!pnode)
+          throw new std::logic_error("argument to ceiling() is too large");
+      else 
+           return pnode->key();
+    }
 
 /*
 
@@ -297,7 +308,10 @@ Some of the std::map insert methods:
 
     bstree<Key, Value> clone() const noexcept; 
 
-    bool isEmpty() const noexcept;
+    bool isEmpty() const noexcept
+    {
+      return (size == 0) ? true : false;
+    }
 
     void test_invariant() const noexcept;
 
@@ -523,11 +537,6 @@ template<class Key, class Value> inline bstree<Key, Value>::Node::Node(Node&& no
 {
 }
 
-template<class Key, class Value> inline bool bstree<Key, Value>::isEmpty() const noexcept
-{
-  return root == nullptr ? true : false;
-}
-
 /*
  * Input:  pnode is a raw Node *.
  * Return: A reference to the unique_ptr that manages pnode.
@@ -668,7 +677,7 @@ template<class Key, class Value>  typename bstree<Key, Value>::Node* bstree<Key,
 }
 
 template<class Key, class Value>  
-typename std::unique_ptr<typename bstree<Key, Value>::Node>& bstree<Key, Value>::get_floor(typename std::unique_ptr<typename bstree<Key, Value>::Node>& pnode, Key key) noexcept
+const typename std::unique_ptr<typename bstree<Key, Value>::Node>& bstree<Key, Value>::get_floor(const typename std::unique_ptr<typename bstree<Key, Value>::Node>& pnode, Key key) const noexcept
 {   
    if (!pnode) 
        return pnode;
@@ -687,12 +696,11 @@ typename std::unique_ptr<typename bstree<Key, Value>::Node>& bstree<Key, Value>:
        return pnode;
 }
 
-
 /*
  * TODO: What is the terminating test for this algorithm? (taken from https://algs4.cs.princeton.edu/32bst/BST.java.html)
  */
 template<class Key, class Value>  
-typename std::unique_ptr<typename bstree<Key, Value>::Node>& bstree<Key, Value>::get_ceiling(std::unique_ptr<typename bstree<Key, Value>::Node>& pnode, Key key) noexcept
+const typename std::unique_ptr<typename bstree<Key, Value>::Node>& bstree<Key, Value>::get_ceiling(const std::unique_ptr<typename bstree<Key, Value>::Node>& pnode, Key key) const noexcept
 {   
    if (!pnode)  // nullptr
        return pnode;
