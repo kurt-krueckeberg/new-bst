@@ -43,7 +43,7 @@ struct Test {
 
   ~Test()
    {
-      std::cout << "Test::~Test():i = " << i << ", " << std::endl << std::flush;
+      //std::cout << "Test::~Test():i = " << i << ", " << std::endl << std::flush;
    }
  
 };

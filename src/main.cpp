@@ -14,6 +14,11 @@ int main(int argc, char** argv)
 
   for (const auto& i : lst) 
       tree.insert(Test{i}, Test{i});
+      
+  cout << tree;
+  cout << "predecessor of 37 should be 36. It is " << tree.test_p(37);
+  cout << "\nsuccessor of 37 should be 39. It is " << tree.test_s(37);
+  return 0;
         
   cout << "This is the input tree " << tree << " printed in debug level order:\n";
   

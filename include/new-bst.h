@@ -111,7 +111,6 @@ template<class Key, class Value> class bstree {
         { 
            return __vt.__get_value().second; 
         }
-
     }; 
 
    class NodeLevelOrderPrinter {
@@ -191,10 +190,29 @@ template<class Key, class Value> class bstree {
 
     void destroy_tree(std::unique_ptr<Node>& current) noexcept;
     
-    const Node *predecessor(Key key) const noexcept;
-    const Node *predecessor(const Node *,Key key) const noexcept;
+    Node *predecessor(Key key) noexcept;
+    std::unique_ptr<Node>& predecessor(std::unique_ptr<Node>& current, Key key) noexcept;
+
+    Node *successor(Key key) noexcept;
+    std::unique_ptr<Node>& successor(std::unique_ptr<Node>& current, Key key) noexcept;
 
   public:
+
+    Key test_p(Key key) noexcept
+    {
+        const Node *pnode = predecessor(key);
+        
+        return (pnode == nullptr) ? key : pnode->key();
+    }
+
+    Key test_s(Key key) noexcept
+    {
+        const Node *pnode = successor(key);
+        
+        return (pnode == nullptr) ? key : pnode->key();
+    }
+
+
 /*
 
 Some of the std::map insert methods:
@@ -302,9 +320,20 @@ Some of the std::map insert methods:
     template<class Functor> void levelOrderTraverse(Functor f) const noexcept;
 
     // Depth-first traversals
-    template<typename Functor> void inOrderTraverse(Functor f) const noexcept { return DoInOrderTraverse(f, root); }
-    template<typename Functor> void preOrderTraverse(Functor f) const noexcept  { return DoPreOrderTraverse(f, root); }
-    template<typename Functor> void postOrderTraverse(Functor f) const noexcept { return DoPostOrderTraverse(f, root); }
+    template<typename Functor> void inOrderTraverse(Functor f) const noexcept
+    { 
+      return DoInOrderTraverse(f, root); 
+    }
+
+    template<typename Functor> void preOrderTraverse(Functor f) const noexcept  
+    { 
+      return DoPreOrderTraverse(f, root); 
+    }
+
+    template<typename Functor> void postOrderTraverse(Functor f) const noexcept
+    { 
+      return DoPostOrderTraverse(f, root); 
+    }
 
     void  printlevelOrder(std::ostream& ostr) const noexcept;
 
@@ -315,7 +344,16 @@ Some of the std::map insert methods:
 
     friend std::ostream& operator<<(std::ostream& ostr, const bstree<Key, Value>& tree) noexcept
     {
-       tree.printlevelOrder(ostr);  
+       std::cout << "{ "; 
+       
+       auto functor = [](const auto& pair) { 
+            const auto&[key, value] = pair;
+            std::cout << key  << ", ";
+       };
+       
+       tree.inOrderTraverse(functor);
+       
+       std::cout << "}\n" << std::flush;
        return ostr;
     }
 };
@@ -480,6 +518,16 @@ template<class Key, class Value> template<typename Functor> void bstree<Key, Val
    }
 }
 
+template<typename Key, typename Value> inline void  bstree<Key, Value>::printlevelOrder(std::ostream& ostr) const noexcept
+{
+  NodeLevelOrderPrinter tree_printer(*this, &Node::print, ostr);  
+  
+  levelOrderTraverse(tree_printer);
+  
+  ostr << std::flush;
+}
+
+
 template<typename Key, typename Value> inline void  bstree<Key, Value>::debug_printlevelOrder(std::ostream& ostr) const noexcept
 {
   NodeLevelOrderPrinter tree_printer(*this, &Node::debug_print, ostr);  
@@ -529,7 +577,7 @@ template<class Key, class Value> template<typename Functor> void bstree<Key, Val
 
    DoInOrderTraverse(f, current->left);
 
-   f(current->__get_pair()); 
+   f(current->__vt.__get_value()); 
 
    DoInOrderTraverse(f, current->right);
 }
@@ -541,7 +589,7 @@ template<class Key, class Value> template<typename Functor> void bstree<Key, Val
       return;
    }
 
-   f(current->__get_pair()); 
+   f(current->__vt.__get_value()); 
 
    DoPreOrderTraverse(f, current->left);
 
@@ -559,7 +607,7 @@ template<class Key, class Value> template<typename Functor> void bstree<Key, Val
 
    DoPostOrderTraverse(f, current->right);
 
-   f(current->__get_pair()); 
+   f(current->__vt.__get_value()); 
 }
 /*
  * Post order node destruction
@@ -642,44 +690,63 @@ template<class Key, class Value>  typename bstree<Key, Value>::Node* bstree<Key,
   }
   return ancestor;
 }
-//////
-// TODO: predecessor() is converted  C++ code of 'floor(Key key)' method from https://algs4.cs.princeton.edu/lectures/32BinarySearchTrees.pdf 
+
+// predecessor() converted Java code of 'floor(Key key)' method from https://algs4.cs.princeton.edu/lectures/32BinarySearchTrees.pdf 
 // Test it. Add comments.
 template<class Key, class Value>  
-const typename bstree<Key, Value>::Node *bstree<Key, Value>::predecessor(Key key) const noexcept
+typename bstree<Key, Value>::Node *bstree<Key, Value>::predecessor(Key key) noexcept
 {
-   Node& pnode = predecessor(root, key);
+   auto& pnode = predecessor(root, key);
 
-   /* 
-   if (!pnode) 
-       return null; // nullptr is of a different type
-
-   return pnode->key;
-   */ 
-   return pnode;
-
+   return pnode.get();
 }
 
 template<class Key, class Value>  
-const typename bstree<Key, Value>::Node *bstree<Key, Value>::predecessor(const typename bstree<Key, Value>::Node *pnode, Key key) const noexcept
+typename std::unique_ptr<typename bstree<Key, Value>::Node>& bstree<Key, Value>::predecessor(typename std::unique_ptr<typename bstree<Key, Value>::Node>& pnode, Key key) noexcept
 {   
    if (!pnode) 
        return pnode;
 
-   /*
-   if (key = pnode->key)  // <-- This should never  occur
-       return pnode;
-   */
+   if (key < pnode->key())
+       return predecessor(pnode->left, key);
 
-   if (key < pnode->key)
-       return predecessor(pnode.left, key);
-
-   const Node *pnode_r = predecessor(pnode->right, key);
+   auto& pnode_r = predecessor(pnode->right, key);
 
    if (pnode_r) 
        return pnode_r;   
    else
        return pnode;
+}
+
+
+template<class Key, class Value>  
+typename bstree<Key, Value>::Node *bstree<Key, Value>::successor(Key key) noexcept
+{
+   std::unique_ptr<Node>& psuccessor = successor(root, key);
+   
+   return psuccessor.get();
+}
+
+/*
+ * TODO: What is the terminate condition for this algorithm take from https://algs4.cs.princeton.edu/32bst/BST.java.html 
+ */
+template<class Key, class Value>  
+typename std::unique_ptr<typename bstree<Key, Value>::Node>& bstree<Key, Value>::successor(std::unique_ptr<typename bstree<Key, Value>::Node>& pnode, Key key) noexcept
+{   
+   if (!pnode)  // nullptr
+       return pnode;
+
+   if(key < pnode->key()) {
+
+      auto& pnode_t = successor(pnode->left, key); 
+
+      if (pnode_t)  // If pnode_t is not nullptr, return pnode_t
+          return pnode_t;
+      else 
+          return pnode; // else return pnode
+   }
+
+   return successor(pnode->right, key);
 }
 
 template<class Key, class Value> void bstree<Key, Value>::insert(std::initializer_list<value_type>& list) noexcept 
@@ -688,7 +755,6 @@ template<class Key, class Value> void bstree<Key, Value>::insert(std::initialize
 
       insert_or_assign(key, value);
 }
-
 
 /*
  Like the procedure find(), insert() begins at the root of the tree and traces a path downward. The pointer x traces the path, and the pointer parent is maintained as the parent of current.
