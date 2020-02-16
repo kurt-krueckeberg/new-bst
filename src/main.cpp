@@ -3,7 +3,7 @@
 #include <iostream>
 #include <initializer_list>
 #include "test.h"
-#include "bst.h"
+#include "new-bst.h"
 using namespace std;
 
 

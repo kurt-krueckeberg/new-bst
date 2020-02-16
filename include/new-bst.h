@@ -191,6 +191,9 @@ template<class Key, class Value> class bstree {
 
     void destroy_tree(std::unique_ptr<Node>& current) noexcept;
     
+    const Node *predecessor(Key key) const noexcept;
+    const Node *predecessor(const Node *,Key key) const noexcept;
+
   public:
 /*
 
@@ -638,6 +641,45 @@ template<class Key, class Value>  const typename bstree<Key, Value>::Node* bstre
   }
   return ancestor;
 }
+//////
+// TODO: predecessor() is converted  C++ code of 'floor(Key key)' method from https://algs4.cs.princeton.edu/lectures/32BinarySearchTrees.pdf 
+// Test it. Add comments.
+template<class Key, class Value>  
+const typename bstree<Key, Value>::Node *bstree<Key, Value>::predecessor(Key key) const noexcept
+{
+   Node& pnode = predecessor(root, key);
+
+   /* 
+   if (!pnode) 
+       return null; // nullptr is of a different type
+
+   return pnode->key;
+   */ 
+   return pnode;
+
+}
+
+template<class Key, class Value>  
+const typename bstree<Key, Value>::Node *bstree<Key, Value>::predecessor(const typename bstree<Key, Value>::Node *pnode, Key key) const noexcept
+{   
+   if (!pnode) 
+       return pnode;
+
+   /*
+   if (key = pnode->key)  // <-- This should never  occur
+       return pnode;
+   */
+
+   if (key < pnode->key)
+       return predecessor(pnode.left, key);
+
+   const Node *pnode_r = predecessor(pnode->right, key);
+
+   if (pnode_r) 
+       return pnode_r;   
+   else
+       return pnode;
+}
 
 template<class Key, class Value> void bstree<Key, Value>::insert(std::initializer_list<value_type>& list) noexcept 
 {
@@ -793,8 +835,7 @@ template<class Key, class Value> bool bstree<Key, Value>::remove(Key key) noexce
 
   // There are three cases to consider 
   // case 1: If both children are nullptr, we can simply delete pnode. 
-  if (!pnode->left && !pnode->right) 
-      
+  if (!pnode->left && !pnode->right) {
       pnode.reset();    
          
   } else if (pnode->left || pnode->right) { // Case 2:If pnode has just one child, then we elevate that child to take pnode's position in the tree
