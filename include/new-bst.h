@@ -573,7 +573,7 @@ template<class Key, class Value> void bstree<Key, Value>::destroy_tree(std::uniq
 
    destroy_tree(current->left);
 
-   DoPostOrderTraverse(current->right);
+   destroy_tree(current->right);
 
    current.reset();
 }
@@ -839,8 +839,7 @@ template<class Key, class Value> bool bstree<Key, Value>::remove(Key key) noexce
       pnode.reset();    
          
   } else if (pnode->left || pnode->right) { // Case 2:If pnode has just one child, then we elevate that child to take pnode's position in the tree
-                                            // by modifying pnode's parent to replace pnode by it's child.
-
+                                           // by modifying pnode's parent to replace pnode by it's child.
       Node *parent = pnode->parent;
             
       pnode = std::move(pnode->left);
@@ -858,11 +857,11 @@ template<class Key, class Value> bool bstree<Key, Value>::remove(Key key) noexce
        2. Otherwise, y lies within pnode's right subtree but is not pnode's right child (part (d)). In this case, we first
           replace y by its own right child, and then we replace pnode by y.
       */
-      auto successor = getSuccessor(pnode);
+      auto successor = getSuccessor(pnode.get());
 
       pnode->__vt = std::move(successor->__vt);  // move the successor's key and value into pnode. Do not alter pnode's parent or left and right children.
 
-      successor.reset(); // safely delete leaf pnode successor
+      get_unique_ptr(successor).reset(); // <-- This is a raw pointer not a unique pointer. safely delete leaf pnode successor
   }  
 
   --size; 
