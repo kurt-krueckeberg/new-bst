@@ -173,11 +173,11 @@ template<class Key, class Value> class bstree {
 
     void copy_tree(const bstree<Key, Value>& lhs) noexcept;
 
-    const Node *min(const Node *current) const noexcept;
+    Node *min(Node *current) const noexcept;
    
-    const Node *getSuccessor(const Node *current) const noexcept;
+    Node *getSuccessor(const Node *current) const noexcept;
    
-    std::unique_ptr<Node>& get_unique_ptr(const Node *pnode) const noexcept;
+    std::unique_ptr<Node>& get_unique_ptr(Node *pnode) noexcept;
 
     std::pair<bool, const Node *> findNode(const key_type& key, const Node *current) const noexcept; 
 
@@ -508,7 +508,7 @@ template<class Key, class Value> inline bool bstree<Key, Value>::isEmpty() const
  * Input:  pnode is a raw Node *.
  * Return: A reference to the unique_ptr that manages pnode.
  */
-template<class Key, class Value> std::unique_ptr<typename bstree<Key, Value>::Node>& bstree<Key, Value>::get_unique_ptr(const Node *pnode) const noexcept
+template<class Key, class Value> std::unique_ptr<typename bstree<Key, Value>::Node>& bstree<Key, Value>::get_unique_ptr(Node *pnode) noexcept
 {
   if (pnode->parent == nullptr) { // Is pnode the root? 
 
@@ -610,11 +610,11 @@ template<class Key, class Value> std::pair<bool, const typename bstree<Key, Valu
   return {false, parent}; 
 }
 
-template<class Key, class Value> const typename bstree<Key, Value>::Node *bstree<Key, Value>::min(const typename bstree<Key, Value>::Node *current) const noexcept
+template<class Key, class Value> typename bstree<Key, Value>::Node *bstree<Key, Value>::min(typename bstree<Key, Value>::Node *current) const noexcept
 {
   while (current->left != nullptr) {
 
-       current = current->left;
+       current = current->left.get();
   } 
 
   return current;  
@@ -626,9 +626,10 @@ template<class Key, class Value> const typename bstree<Key, Value>::Node *bstree
   Returns: The pointer to successor node or nullptr if there is no successor (because the input node was the largest in the tree)
  
  */
-template<class Key, class Value>  const typename bstree<Key, Value>::Node* bstree<Key, Value>::getSuccessor(const typename bstree<Key, Value>::Node *current) const noexcept
+template<class Key, class Value>  typename bstree<Key, Value>::Node* bstree<Key, Value>::getSuccessor(const typename bstree<Key, Value>::Node *current) const noexcept
 {
-  if (current->right != nullptr) return min(current->right);
+  if (current->right != nullptr) 
+      return min(current->right.get());
 
   Node *ancestor = current->parent;
 
@@ -860,8 +861,10 @@ template<class Key, class Value> bool bstree<Key, Value>::remove(Key key) noexce
       auto successor = getSuccessor(pnode.get());
 
       pnode->__vt = std::move(successor->__vt);  // move the successor's key and value into pnode. Do not alter pnode's parent or left and right children.
-
-      get_unique_ptr(successor).reset(); // <-- This is a raw pointer not a unique pointer. safely delete leaf pnode successor
+      
+      std::unique_ptr<Node>& remove_me = get_unique_ptr(successor); 
+      
+      remove_me.reset(); // <-- This is a raw pointer not a unique pointer. safely delete leaf pnode successor
   }  
 
   --size; 
