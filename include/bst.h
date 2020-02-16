@@ -77,7 +77,7 @@ template<class Key, class Value> class bstree {
 
         std::ostream& print(std::ostream& ostr) const noexcept; 
 
-        //--std::ostream& debug_print(std::ostream& ostr) const noexcept;
+        std::ostream& debug_print(std::ostream& ostr) const noexcept;
 
         friend std::ostream& operator<<(std::ostream& ostr, const Node& node) noexcept
         { 
@@ -338,7 +338,7 @@ Some of the std::map insert methods:
 
     template<typename PrintFunctor> void  printlevelOrder(std::ostream& ostr, PrintFunctor pf) const noexcept;
 
-    //void debug_printlevelOrder(std::ostream& ostr) const noexcept;
+    void debug_print(std::ostream& ostr) const noexcept;
 
     int height() const noexcept;
     bool isBalanced() const noexcept;
@@ -454,7 +454,7 @@ template<class Key, class Value> inline std::ostream& bstree<Key, Value>::Node::
   ostr << "[ " << key() << ", " << value() << "] " << std::flush;  
   return ostr; 
 }
-/*
+
 template<class Key, class Value> std::ostream& bstree<Key, Value>::Node::debug_print(std::ostream& ostr) const noexcept
 {
    ostr << " {["; 
@@ -480,44 +480,6 @@ template<class Key, class Value> std::ostream& bstree<Key, Value>::Node::debug_p
  
    return ostr;
 }
-*/
-
-// Breadth-first traversal. Useful for display the tree (with a functor that knows how to pad with spaces based on level).
-template<class Key, class Value> template<typename Functor> void bstree<Key, Value>::levelOrderTraverse(Functor f) const noexcept
-{
-   std::queue< std::pair<const Node*, int> > queue; 
-
-   Node* proot = root.get();
-
-   if (proot == nullptr) return;
-      
-   auto initial_level = 1; // initial, top root level is 1.
-   
-   // 1. pair.first  is: const tree<Key, Value>::Node23*, the current node to visit.
-   // 2. pair.second is: current level of tree.
-   queue.push(std::make_pair(proot, initial_level));
-
-   while (!queue.empty()) {
-
-       /*
-        std::pair<const Node *, int> pair_ = queue.front();
-        const Node *current = pair_.first;
-        int current_level = pair_.second;
-       */
-
-        auto[current, current_level] = queue.front(); // C++17 unpacking.
-
-        f(current, current_level);  
-        
-        if(current->left)
-            queue.push(std::make_pair(current->left.get(), current_level + 1));  
-
-        if(current->right)
-            queue.push(std::make_pair(current->right.get(), current_level + 1));  
-
-        queue.pop(); 
-   }
-}
 
 template<typename Key, typename Value> 
 template<typename PrintFunctor>
@@ -530,16 +492,14 @@ void  bstree<Key, Value>::printlevelOrder(std::ostream& ostr, PrintFunctor print
   ostr << std::flush;
 }
 
-/*
-template<typename Key, typename Value> inline void  bstree<Key, Value>::debug_print() const noexcept
+template<typename Key, typename Value> inline void  bstree<Key, Value>::debug_print(std::ostream& ostr) const noexcept
 {
-  NodeLevelOrderPrinter tree_printer(*this, &Node::debug_print, ostr);  
-  
-  levelOrderTraverse(tree_printer);
+  auto node_debug_printer = [&ostr] (const Node *current) { current->debug_print(ostr); };
+
+  printlevelOrder(ostr, node_debug_printer);  
   
   ostr << std::flush;
 }
-*/
 
 /*
 template<class Key, class Value> bstree<Key, Value>::Node::Node(Key key, const Value& value, Node *ptr2parent)  : parent{ptr2parent}, left{nullptr}, right{nullptr}, \
@@ -732,7 +692,7 @@ typename bstree<Key, Value>::Node *bstree<Key, Value>::successor(Key key) noexce
 }
 
 /*
- * TODO: What is the terminate condition for this algorithm take from https://algs4.cs.princeton.edu/32bst/BST.java.html 
+ * TODO: What is the terminating test for this algorithm? (taken from https://algs4.cs.princeton.edu/32bst/BST.java.html)
  */
 template<class Key, class Value>  
 typename std::unique_ptr<typename bstree<Key, Value>::Node>& bstree<Key, Value>::successor(std::unique_ptr<typename bstree<Key, Value>::Node>& pnode, Key key) noexcept
@@ -761,44 +721,40 @@ template<class Key, class Value> void bstree<Key, Value>::insert(std::initialize
 }
 
 /*
- Like the procedure find(), insert() begins at the root of the tree and traces a path downward. The pointer x traces the path, and the pointer parent is maintained as the parent of current.
- The while loop causes these two pointers to move down the tree, going left or right depending on the comparison of key[pnode] with key[x], until current is set to nullptr. This nullptr
- occupies the position where we wish to place the input item pnode. 
-*/
-/*
+ * Algorithm from page 294 of Introduction to Alogorithm, 3rd Edition by Cormen, et. al
+ *
+ */
 template<class Key, class Value> void bstree<Key, Value>::insert_or_assign(const key_type& key, const mapped_type& value) noexcept
 {
-    if (size == 0) { // tree is empty
-        
-        create_root(key, value);
-    
-        return; // TODO: return iterator?
-    }
-    
-    if (auto [bFound, pnode] = findNode(key, root.get()); bFound == true) {
+  Node *parent = nullptr;
+ 
+  Node *current = root.get();
+ 
+  // parent will become the parent of the new node. One of its children (that is nullptr) will become the new node. 
+  while (current) { 
+ 
+      parent = current;
+ 
+      if (key == current->key()) {
 
-         const_cast<Node *>(pnode)->value() = value;        
-         
-         return; // TODO: Return iterator?
-
-    // else if Not found, insert. pnode is the leaf node that will be the parent of the new node.
-    } else {
-        
-       auto parent = const_cast<Node *>(pnode);
-        
-       std::unique_ptr<Node> pnew_node = std::make_unique<Node>(key, value, parent); 
-
-       if (pnew_node->key() < parent->key()) 
-           parent->left = std::move(pnew_node); 
-       else 
-           parent->right = std::move(pnew_node);
-    }
-
-    ++size;
-
-    // TODO: return iterator ??
+          current->value() = value;
+          return;
+      }
+ 
+      else if (key < current->key())
+            current = current->left.get();
+       else current = current->right.get();
+  }     
+ 
+  std::unique_ptr<Node> node = std::make_unique<Node>(key, value, parent); 
+  
+  if (!parent)
+     root = std::move(node); // tree was empty
+  else if (node->key() < parent->key())
+       parent->left = std::move(node);
+  else 
+       parent->right = std::move(node);  
 }
-*/
 
 /*
  * See Algorithm on page 295 of Introduction to Alogorithm, 3rd Edition by Cormen, et. al
@@ -969,66 +925,6 @@ template<class Key, class Value> bool bstree<Key, Value>::isBalanced(const Node*
    return (diff == 1 || diff ==0) ? true : false; // return true is absolute value is 0 or 1.
 }
 
-// Visits each Node, testing whether it is balanced. Returns false if any node is not balanced.
-template<class Key, class Value> bool bstree<Key, Value>::isBalanced() const noexcept
-{
-   std::stack<Node> nodes;
-
-   nodes.push(root.get());
-
-   while (!nodes.empty()) {
-
-     const Node *current = nodes.pop();
-
-     if (isBalanced(current) == false)  return false; 
-
-     if (current->rightChild != nullptr) 
-         nodes.push(current->rightChild);
- 
-     if (current->leftChild != nullptr) 
-         nodes.push(current->leftChild);
-   }
-
-   return true; // All Nodes were balanced.
-}
-
-/*
- * Algorithm from page 294 of Introduction to Alogorithm, 3rd Edition by Cormen, et. al
- *
- */
-template<class Key, class Value> void bstree<Key, Value>::insert_or_assign(const key_type& key, const mapped_type& value) noexcept
-{
-  Node *parent = nullptr;
- 
-  Node *current = root.get();
- 
-  // parent will become the parent of the new node. One of its children (that is nullptr) will become the new node. 
-  while (current) { 
- 
-      parent = current;
- 
-      if (key == current->key()) {
-
-          current->value() = value;
-          return;
-      }
- 
-      else if (key < current->key())
-            current = current->left.get();
-       else current = current->right.get();
-  }     
- 
-  std::unique_ptr<Node> node = std::make_unique<Node>(key, value, parent); 
-  
-  if (!parent)
-     root = std::move(node); // tree was empty
-  else if (node->key() < parent->key())
-       parent->left = std::move(node);
-  else 
-       parent->right = std::move(node);  
-}
-
-
 /*
 template<class Key, class Value> void bstree<Key, Value>::transplant(std::unique_ptr<Node>& u, std::unique_ptr<Node>& v)
 {
@@ -1056,4 +952,64 @@ unique_ptr<> methods:
  */
 
 
+
+// Visits each Node, testing whether it is balanced. Returns false if any node is not balanced.
+template<class Key, class Value> bool bstree<Key, Value>::isBalanced() const noexcept
+{
+   std::stack<Node> nodes;
+
+   nodes.push(root.get());
+
+   while (!nodes.empty()) {
+
+     const Node *current = nodes.pop();
+
+     if (isBalanced(current) == false)  return false; 
+
+     if (current->rightChild != nullptr) 
+         nodes.push(current->rightChild);
+ 
+     if (current->leftChild != nullptr) 
+         nodes.push(current->leftChild);
+   }
+
+   return true; // All Nodes were balanced.
+}
+
+// Breadth-first traversal. Useful for display the tree (with a functor that knows how to pad with spaces based on level).
+template<class Key, class Value> template<typename Functor> void bstree<Key, Value>::levelOrderTraverse(Functor f) const noexcept
+{
+   std::queue< std::pair<const Node*, int> > queue; 
+
+   Node* proot = root.get();
+
+   if (proot == nullptr) return;
+      
+   auto initial_level = 1; // initial, top root level is 1.
+   
+   // 1. pair.first  is: const tree<Key, Value>::Node23*, the current node to visit.
+   // 2. pair.second is: current level of tree.
+   queue.push(std::make_pair(proot, initial_level));
+
+   while (!queue.empty()) {
+
+       /*
+        std::pair<const Node *, int> pair_ = queue.front();
+        const Node *current = pair_.first;
+        int current_level = pair_.second;
+       */
+
+        auto[current, current_level] = queue.front(); // C++17 unpacking.
+
+        f(current, current_level);  
+        
+        if(current->left)
+            queue.push(std::make_pair(current->left.get(), current_level + 1));  
+
+        if(current->right)
+            queue.push(std::make_pair(current->right.get(), current_level + 1));  
+
+        queue.pop(); 
+   }
+}
 #endif
