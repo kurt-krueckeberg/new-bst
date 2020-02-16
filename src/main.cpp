@@ -32,7 +32,13 @@ int main(int argc, char** argv)
   
   cout << "predecessor of 37 should be 36. It is " << tree.test_p(37);
   cout << "\nsuccessor of 37 should be 39. It is " << tree.test_s(37);
+ 
+  auto printer_debug = [](const auto& pr) {
+      const auto&[key, value] = pr;
+      cout << key << ", ";
+  };
 
+  tree.printlevelOrder(cout, key_printer);
   return 0;
   /*      
   cout << "This is the input tree " << tree << " printed in debug level order:\n";
