@@ -531,7 +531,7 @@ void  bstree<Key, Value>::printlevelOrder(std::ostream& ostr, PrintFunctor print
 }
 
 /*
-template<typename Key, typename Value> inline void  bstree<Key, Value>::debug_printlevelOrder(std::ostream& ostr) const noexcept
+template<typename Key, typename Value> inline void  bstree<Key, Value>::debug_print() const noexcept
 {
   NodeLevelOrderPrinter tree_printer(*this, &Node::debug_print, ostr);  
   
@@ -801,42 +801,6 @@ template<class Key, class Value> void bstree<Key, Value>::insert_or_assign(const
 */
 
 /*
- * Algorithm from page 294 of Introduction to Alogorithm, 3rd Edition by Cormen, et. al
- *
- */
-template<class Key, class Value> void bstree<Key, Value>::insert_or_assign(const key_type& key, const mapped_type& value) noexcept
-{
-  Node *parent = nullptr;
- 
-  Node *current = root.get();
- 
-  // parent will become the parent of the new node. One of its children (that is nullptr) will become the new node. 
-  while (current) { 
- 
-      parent = current;
- 
-      if (key == current->key()) {
-
-          current->value() = value;
-          return;
-      }
- 
-      else if (key < current->key())
-            current = current->left.get();
-       else current = current->right.get();
-  }     
- 
-  std::unique_ptr<Node> node = std::make_unique<Node>(key, value, parent); 
-  
-  if (!parent)
-     root = std::move(node); // tree was empty
-  else if (node->key() < parent->key())
-       parent->left = std::move(node);
-  else 
-       parent->right = std::move(node);  
-}
-
-/*
  * See Algorithm on page 295 of Introduction to Alogorithm, 3rd Edition by Cormen, et. al
 
 Deletion
@@ -941,31 +905,6 @@ template<class Key, class Value> bool bstree<Key, Value>::remove(Key key) noexce
 
   return true; 
 }
-/*
-template<class Key, class Value> void bstree<Key, Value>::transplant(std::unique_ptr<Node>& u, std::unique_ptr<Node>& v)
-{
-/*
-TODO:
-The pseudo code from Introduction to Algorithms deals with raw pointers (and does explicitly release memory). However, when you delete a unique_ptr<Node>, 
-its entire subtree is deleted, but in this routine we only want to delete one node.
-
-unique_ptr<> methods:
-
- Node *pnode.>release(); // relinquishes ownership
- pnode.swap(pother);     // swaps raw pointers
- move assignment
-
-
-   if (!u->parent)       // u->parent == NIL implies u is the root.
-       root = v; 
-   else if (u == u->parent->left)
-      u->parent->left = v; 
-   else 
-      u->parent->right = v; 
-   if (v)               // u != NIL; 
-      v->parent = u->parent 
-}
- */
 
 template<class Key, class Value> inline int bstree<Key, Value>::height() const noexcept
 {
@@ -1052,5 +991,69 @@ template<class Key, class Value> bool bstree<Key, Value>::isBalanced() const noe
 
    return true; // All Nodes were balanced.
 }
+
+/*
+ * Algorithm from page 294 of Introduction to Alogorithm, 3rd Edition by Cormen, et. al
+ *
+ */
+template<class Key, class Value> void bstree<Key, Value>::insert_or_assign(const key_type& key, const mapped_type& value) noexcept
+{
+  Node *parent = nullptr;
+ 
+  Node *current = root.get();
+ 
+  // parent will become the parent of the new node. One of its children (that is nullptr) will become the new node. 
+  while (current) { 
+ 
+      parent = current;
+ 
+      if (key == current->key()) {
+
+          current->value() = value;
+          return;
+      }
+ 
+      else if (key < current->key())
+            current = current->left.get();
+       else current = current->right.get();
+  }     
+ 
+  std::unique_ptr<Node> node = std::make_unique<Node>(key, value, parent); 
+  
+  if (!parent)
+     root = std::move(node); // tree was empty
+  else if (node->key() < parent->key())
+       parent->left = std::move(node);
+  else 
+       parent->right = std::move(node);  
+}
+
+
+/*
+template<class Key, class Value> void bstree<Key, Value>::transplant(std::unique_ptr<Node>& u, std::unique_ptr<Node>& v)
+{
+/*
+TODO:
+The pseudo code from Introduction to Algorithms deals with raw pointers (and does explicitly release memory). However, when you delete a unique_ptr<Node>, 
+its entire subtree is deleted, but in this routine we only want to delete one node.
+
+unique_ptr<> methods:
+
+ Node *pnode.>release(); // relinquishes ownership
+ pnode.swap(pother);     // swaps raw pointers
+ move assignment
+
+
+   if (!u->parent)       // u->parent == NIL implies u is the root.
+       root = v; 
+   else if (u == u->parent->left)
+      u->parent->left = v; 
+   else 
+      u->parent->right = v; 
+   if (v)               // u != NIL; 
+      v->parent = u->parent 
+}
+ */
+
 
 #endif
