@@ -1,5 +1,4 @@
 TODO 
 ====
 
-The new code is in bst.h, remove() is not yet implemented. It will use the newer transplant-based algorithm that is better than Hibbard delete.
-See https://data-structs.kurttest.com/notes/bst.html 
+remove() needs to be implemented using the CLRS transplant-based algorithm. See discussion links of BST remove at https://data-structs.kurttest.com/notes/bst.html 
