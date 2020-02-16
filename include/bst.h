@@ -34,9 +34,8 @@ template<class Key, class Value> class bstree {
 
   private:
    /*
-    * The bstree consists of a tree Nodes managed by std::unique_ptr<Node>, and each Node contains left and right children and 
-      a pair<const Key, Value>. The pair is declared inside a wrapper class __value_type whose assignment operators provide
-      greater convenience. 
+    * The tree nodes are of type std::unique_ptr<Node>, and each node contains a __value_type member __vt, a convenience 
+      wrapper for access to a pair<const Key, Value>. 
     */ 
    class Node {
 
@@ -52,18 +51,6 @@ template<class Key, class Value> class bstree {
         // The copy constructor 
         Node(const Node& lhs);
         
-        /* 
-          Do we need constructor or the one below it?
-
-        Node(const Key& key, const Value& value, Node *parent_in=nullptr) : __vt{key, value}, parent{parent_in}
-        {
-           left = std::make_unique<Node>();    
-           right = std::make_unique<Node>(); 
-
-           left->parent = right->parent = this;
-        }
-        */
-        
         Node(const Key& key, const Value& value, Node *parent_in=nullptr) : __vt{key, value}, parent{parent_in}, left{nullptr}, right{nullptr} 
         {
         }
@@ -71,11 +58,18 @@ template<class Key, class Value> class bstree {
         Node& operator=(const Node&) noexcept; 
 
         Node(Node&&); // ...but we allow move assignment and move construction.
+        /*
+           ~Node() implictily invokes the Node destructor for left and right, which results in the recursive destruction of the entire subtree rooted at *this. However, this can cause the stack to overflow, especially if
+           the Node being destructed is the root. To avoid this, ~bstree() calls destroy_subtree(root), which does a post-order traversal, calling node.reset(). 
+           Th e uniqu_ptr<Node>::reset() will jnvoke the ~Node destructor, which will implicitly invoke the destructor left and right. HOwever, the post-order traversal ensures that left and right will already be nullptr, and thus
+           no infinite recursion can occur.
+           
+              ~Node() = default; 
+         */
 
-        // TODO: When left and right are all implicitly deleted, resulting in the deletion of all nodes in the subtree. Do we call left->release() and right->release()? 
-       ~Node() = default; 
-
-        std::ostream& print(std::ostream& ostr) const noexcept; 
+       ~Node() = default;
+       
+               std::ostream& print(std::ostream& ostr) const noexcept; 
 
         std::ostream& debug_print(std::ostream& ostr) const noexcept;
 
@@ -189,7 +183,7 @@ template<class Key, class Value> class bstree {
     
     Node *find(Key key, const std::unique_ptr<Node>&) const noexcept;
 
-    void destroy_tree(std::unique_ptr<Node>& current) noexcept;
+    void destroy_subtree(std::unique_ptr<Node>& subtree_root) noexcept;
 
     Node *get_floor(Key key) const noexcept
     {
@@ -290,7 +284,7 @@ Some of the std::map insert methods:
     // will be invoke in one huge recursive call 
    ~bstree() noexcept
     {
-        destroy_tree(root);
+        destroy_subtree(root);
     } 
 
     bstree(std::initializer_list<value_type>& list) noexcept; 
@@ -597,16 +591,16 @@ template<class Key, class Value> template<typename Functor> void bstree<Key, Val
 /*
  * Post order node destruction
  */
-template<class Key, class Value> void bstree<Key, Value>::destroy_tree(std::unique_ptr<Node>& current) noexcept
+template<class Key, class Value> void bstree<Key, Value>::destroy_subtree(std::unique_ptr<Node>& current) noexcept
 {
    if (current == nullptr) {
 
       return;
    }
 
-   destroy_tree(current->left);
+   destroy_subtree(current->left);
 
-   destroy_tree(current->right);
+   destroy_subtree(current->right);
 
    current.reset();
 }

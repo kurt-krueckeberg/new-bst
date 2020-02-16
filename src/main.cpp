@@ -41,7 +41,6 @@ int main(int argc, char** argv)
 
   cout << "ceilling(41) = " << tree.ceiling(41) << '\n';
 
-  cout << "floor(-200) = " << tree.floor(-200) << '\n';
 /*
   auto printer_debug = [](const auto& pr) {
       const auto&[key, value] = pr;
