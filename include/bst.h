@@ -870,12 +870,9 @@ template<class Key, class Value> bool bstree<Key, Value>::remove(Key key) noexce
   
   if (!pnode) return false;
 
-  // Get the managing unique_ptr<Node> whose underlying raw point is node? 
-  //--std::unique_ptr<Node>& pnode = get_unique_ptr(pfound);
-
   // There are three cases to consider:
  
-  // case 1: If both children are NIL, we can simply delete the node. 
+  // Case 1: If both children are NIL, we can simply delete the node. 
   if (!pnode->left && !pnode->right) 
       pnode.reset();    
 
@@ -891,9 +888,8 @@ template<class Key, class Value> bool bstree<Key, Value>::remove(Key key) noexce
       
   } else { // (pnode->left && p->right) == true
       /*
-       Case 3: pnode has two non-NIL children. We find pnode's successor y, which lies in pnode's right subtree
-       and has no left child. We want to splice y out of its current location and have it replace pnode in the tree. There are
-       two cases to consider:
+       Case 3: Both children are non-NIL. We find pnode's successor y, which lies in pnode's right subtree and has no left child.
+       We want to splice y out of its current location and have it replace pnode in the tree. There are two cases to consider:
       
        1. If y is pnode's right child, then we replace pnode by y, leaving y’s right child alone. Easy case.
       
@@ -902,12 +898,18 @@ template<class Key, class Value> bool bstree<Key, Value>::remove(Key key) noexce
       */
       auto successor = getSuccessor(pnode.get()); // <-- This is Case 3.1, I believe.
 
-      pnode->__vt = std::move(successor->__vt);  // move the successor's key and value into pnode. Do not alter pnode's parent or left and right children.
-      
-      std::unique_ptr<Node>& remove_me = get_unique_ptr(successor); 
-      
-      remove_me.reset(); // <-- This is a raw pointer not a unique pointer. safely delete leaf pnode successor
-  }  
+      if (successor == pnode->right.get()) { // sub-case 1: successor is right child
+
+          pnode->right->parent = pnode->parent;
+ 
+          pnode = std::move(pnode->right); // Transfers the underlying Node memory at right child to pnode, which deletes pnode's underlying Node.
+
+      } else  {
+
+          // successor lies within pnode's right subtree but is not pnode's right child. In this case, we first replace the successor by its own right child, and then we replace pnode by y.
+          // <---- TODO: transplant(...);  
+      }
+ }  
 
   --size; 
 
