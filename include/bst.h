@@ -208,33 +208,6 @@ template<class Key, class Value> class bstree {
     const std::unique_ptr<Node>& get_ceiling(const std::unique_ptr<Node>& current, Key key) const noexcept;
 
   public:
-
-    Key floor(Key key) const 
-    {
-      if (isEmpty()) 
-          throw new std::logic_error("floor() called with empty tree");
-
-      const Node *pnode = get_floor(key);
-      
-      if (!pnode)
-          throw new std::logic_error("argument to floor() is too small");
-      else 
-           return pnode->key();
-    }
-
-    Key ceiling(Key key) const 
-    {
-      if (isEmpty()) 
-          throw new std::logic_error("floor() called with empty tree");
-
-      const Node *pnode = get_ceiling(key);
-       
-      if (!pnode)
-          throw new std::logic_error("argument to ceiling() is too large");
-      else 
-           return pnode->key();
-    }
-
 /*
 
 Some of the std::map insert methods:
@@ -339,6 +312,32 @@ Some of the std::map insert methods:
     bool find(Key key) const noexcept
     {
        return find(key, root) ? true : false;
+    }
+
+    Key floor(Key key) const 
+    {
+      if (isEmpty()) 
+          throw new std::logic_error("floor() called with empty tree");
+
+      const Node *pnode = get_floor(key);
+      
+      if (!pnode)
+          throw new std::logic_error("argument to floor() is too small");
+      else 
+           return pnode->key();
+    }
+
+    Key ceiling(Key key) const 
+    {
+      if (isEmpty()) 
+          throw new std::logic_error("floor() called with empty tree");
+
+      const Node *pnode = get_ceiling(key);
+       
+      if (!pnode)
+          throw new std::logic_error("argument to ceiling() is too large");
+      else 
+           return pnode->key();
     }
     
     // Breadth-first traversal
