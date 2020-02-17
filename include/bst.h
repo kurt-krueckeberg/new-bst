@@ -856,10 +856,11 @@ child.
 
 In order to move subtrees around within the binary search tree, we define a subroutine TRANSPLANT, which replaces
 one subtree as a child of its parent with another subtree. When TRANSPLANT replaces the subtree rooted at node u
-with the subtree rooted at node v, node u’s parent becomes node #’s parent, and u’s parent ends up having v as its
+with the subtree rooted at node v, node u’s parent becomes node v’s parent, and u’s parent ends up having v as its
 appropriate child.
 
-TRANSPLANT (subtree u, subtree v) 
+TRANSPLANT (subtree u, subtree v) // Question is u the same as z above? 
+
  if u.p == NIL
      root = v;
  elseif u == u.p.left
@@ -868,14 +869,22 @@ TRANSPLANT (subtree u, subtree v)
  if v != NIL
     v.p = u.p
 
+
 Lines 1–2 handle the case in which u is the root of T . Otherwise, u is either a left child or a right child of its
 parent. Lines 3–4 take care of updating u.p.left if u is a left child, and line 5 updates u.p.right if u is a right
 child. We allow v to be NIL , and lines 6–7 update v.p if v is non-NIL . Note that TRANSPLANT does not attempt to
 update v.left and v.right; doing so, or not doing so, is the responsibility of TRANSPLANT ’s caller.
+
+
+Questions:
+The node to remove is pnode, found by find(root, key). 
+Q: Does the Transplant method apply to C++ (where there is no garabag collection, and we have to manually delete the memory)?
+A: We need to fundamentally understand the algorithm annd not blindly  "believe" it does and translate it to C++. The main remove code
+below, for example, does call transplant.
+
 */
 template<class Key, class Value> bool bstree<Key, Value>::remove(Key key) noexcept
 {
-  //--Node *pfound = find(key, root);
   std::unique_ptr<Node>& pnode = find(key, root);
   
   if (!pnode) return false;
@@ -892,7 +901,7 @@ template<class Key, class Value> bool bstree<Key, Value>::remove(Key key) noexce
 
       std::unique_ptr<Node>& onlyChild = pnode->left ? pnode->left : pnode->right;
 
-      onlyChild->parent = pnode->parent; // Before the move-assignment below, we adjust the parent of onlyChild to 
+      onlyChild->parent = pnode->parent; // Before the move-assignment below, first set the parent of onlyChild to 
                                          // pnode's parent.
 
       pnode = std::move(onlyChild);      // Replace pnode with its only non-NIL child.
@@ -1022,7 +1031,7 @@ pseudocode
 /// Implementation
 
    if (!u->parent)                // case 1: u root is the root
-       root = std::move(v); 
+       root = std::move(v);      
    else if (u == u->parent->left) // case 2: u is left child of its parent
        u->parent->left = v; 
    else                           // case 3: u is the right child of its parent
