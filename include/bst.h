@@ -980,12 +980,13 @@ template<class Key, class Value> bool bstree<Key, Value>::isBalanced(const Node*
 }
 
 /*
+transplant replaces one subtree rooted at u as a child of its parent with another subtree rooted a v.
+transplant does not update v.left or v.right
+ */
+/*
 template<class Key, class Value> void bstree<Key, Value>::transplant(std::unique_ptr<Node>& u, std::unique_ptr<Node>& v)
 {
 /*
-TODO:
-The pseudo code from Introduction to Algorithms deals with raw pointers (and does explicitly release memory). However, when you delete a unique_ptr<Node>, 
-its entire subtree is deleted, but in this routine we only want to delete one node.
 
 unique_ptr<> methods:
 
@@ -993,18 +994,32 @@ unique_ptr<> methods:
  pnode.swap(pother);     // swaps raw pointers
  move assignment
 
+////////////////////////
+pseudocode
 
-   if (!u->parent)       // u->parent == NIL implies u is the root.
+   if (!u->parent)                // case 1: u root is the root
        root = v; 
-   else if (u == u->parent->left)
+   else if (u == u->parent->left) // case 2: u is left child of its parent
       u->parent->left = v; 
-   else 
+   else                           // case 3: u is the right child of its parent
       u->parent->right = v; 
-   if (v)               // u != NIL; 
+   if (v)                         // If v != NIL, update its parent 
       v->parent = u->parent 
+
+/// Implementation
+
+   if (!u->parent)                // case 1: u root is the root
+       root = std::move(v); 
+   else if (u == u->parent->left) // case 2: u is left child of its parent
+       u->parent->left = v; 
+   else                           // case 3: u is the right child of its parent
+       u->parent->right = v; 
+   if (v)                         // If v != NIL, update its parent 
+      v->parent = u->parent 
+
+
 }
  */
-
 
 
 // Visits each Node, testing whether it is balanced. Returns false if any node is not balanced.
