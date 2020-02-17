@@ -883,12 +883,12 @@ template<class Key, class Value> bool bstree<Key, Value>::remove(Key key) noexce
   // There are three cases to consider:
  
   // Case 1: If both children are NIL, we can simply delete the node (which sets it to NIL). 
-  if (!pnode->left && !pnode->right) { 
+  if (!pnode->left && !pnode->right) 
       pnode.reset();    
 
   // Case 2: pnode has just one child, thus we elevate that child to take pnode's position in the tree
   // by modifying pnode's parent to replace pnode by it's child.
-  } else if (pnode->left || pnode->right) {       
+  else if (pnode->left || pnode->right) {       
 
       std::unique_ptr<Node>& onlyChild = pnode->left ? pnode->left : pnode->right;
 
@@ -914,9 +914,13 @@ template<class Key, class Value> bool bstree<Key, Value>::remove(Key key) noexce
  
           pnode = std::move(pnode->right); // Transfers the underlying Node memory at right child to pnode, which deletes pnode's underlying Node.
 
-      } else  { // successor y lies within pnode's right subtree (mention why we are certain of this) but is not pnode's right child. In this case, we first replace the successor by its own right child, and then we replace pnode by y.
+      } else  { 
+           // successor y lies within pnode's right subtree (but is not pnode's right child). In this case, we first
+           // replace the successor by its own right child, and then we replace pnode by y.
 
-          std::unique_ptr<Node>& y = min(pnode->right); // We know, since pnode->right != NIL, the successor is in right subtree
+          std::unique_ptr<Node>& y = min(pnode->right); // Because we know pnode->right != NIL, we know the successor is in right subtree, so we call
+                                                        // min(pnode->right). 
+          //....
       }
  }  
 
