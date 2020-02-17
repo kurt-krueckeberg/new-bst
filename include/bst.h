@@ -839,17 +839,17 @@ child.
    and has no left child (see Exercise 12.2-5). We want to splice y out of its current location and have it
    replace z in the tree.
 
-    1. If y is z’s right child (part (c)), then we replace z by y, leaving y’s right child alone.
+    1. If y is z’s right child, then we replace z by y, leaving y’s right child alone.
 
-    2. Otherwise, y lies within z’s right subtree but is not z’s right child (part (d)).  In this case, we
-       first replace y by its own right child, and then we replace z by y.
+    2. Otherwise, y lies within z’s right subtree but is not z’s right child.  In this case, we first replace
+       y by its own right child, and then we replace z by y.
 
-In order to move subtrees around within the binary search tree, we define a subroutine T RANSPLANT, which replaces
+In order to move subtrees around within the binary search tree, we define a subroutine TRANSPLANT, which replaces
 one subtree as a child of its parent with another subtree. When TRANSPLANT replaces the subtree rooted at node u
 with the subtree rooted at node v, node u’s parent becomes node #’s parent, and u’s parent ends up having v as its
 appropriate child.
 
-TRANSPLANT (T, u, v)
+TRANSPLANT (subtree u, subtree v) 
  if u.p == NIL
      root = v;
  elseif u == u.p.left
@@ -896,18 +896,15 @@ template<class Key, class Value> bool bstree<Key, Value>::remove(Key key) noexce
        2. Otherwise, y lies within pnode's right subtree but is not pnode's right child (part (d)). In this case, we first
           replace y by its own right child, and then we replace pnode by y.
       */
-      auto successor = getSuccessor(pnode.get()); // <-- This is Case 3.1, I believe.
+      auto y = getSuccessor(pnode.get());  
 
-      if (successor == pnode->right.get()) { // sub-case 1: successor is right child
+      if (y == pnode->right.get()) { // sub-case 1: successor is right child (and the successor has no left child)
 
           pnode->right->parent = pnode->parent;
  
           pnode = std::move(pnode->right); // Transfers the underlying Node memory at right child to pnode, which deletes pnode's underlying Node.
 
-      } else  {
-
-          // successor lies within pnode's right subtree but is not pnode's right child. In this case, we first replace the successor by its own right child, and then we replace pnode by y.
-          // <---- TODO: transplant(...);  
+      } else  { // successor y lies within pnode's right subtree (mention why we are certain of this) but is not pnode's right child. In this case, we first replace the successor by its own right child, and then we replace pnode by y.
       }
  }  
 
