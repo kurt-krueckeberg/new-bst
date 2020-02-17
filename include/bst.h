@@ -167,7 +167,8 @@ template<class Key, class Value> class bstree {
 
     void copy_tree(const bstree<Key, Value>& lhs) noexcept;
 
-    const Node *min(const Node *current) const noexcept;
+    //--const Node *min(const Node *current) const noexcept;
+    std::unique_ptr<Node>& min(const std::unique_ptr<Node>& current) const noexcept;
    
     Node *getSuccessor(const Node *current) const noexcept;
 
@@ -650,7 +651,7 @@ template<class Key, class Value> std::pair<bool, const typename bstree<Key, Valu
   
   return {false, parent}; 
 }
-
+/*
 template<class Key, class Value> const typename bstree<Key, Value>::Node *bstree<Key, Value>::min(const typename bstree<Key, Value>::Node *current) const noexcept
 {
   while (current->left != nullptr) {
@@ -660,7 +661,16 @@ template<class Key, class Value> const typename bstree<Key, Value>::Node *bstree
 
   return current;  
 }
+*/
+template<class Key, class Value> std::unique_ptr<typename bstree<Key, Value>::Node>& bstree<Key, Value>::min(const std::unique_ptr<typename bstree<Key, Value>::Node>& current) const noexcept
+{
+  while (current->left) {
 
+       current = current->left;
+  } 
+
+  return current;  
+}
 /*
   If the right subtree of node current is nonempty, then the successor of x is min(current.right). But if current->right is NIL, then the successor (which exists unless current holds the maximum key)
   is the lowest ancestor of x whose left child is also an ancestor of x.
@@ -810,8 +820,8 @@ template<class Key, class Value> bool bstree<Key, Value>::insert_or_assign(const
 Deletion
 ========
 
-The overall strategy for deleting a node z from a binary search tree T has three basic cases but,
-as we shall see, one of the cases is a bit tricky.
+The overall strategy for deleting a node z from a binary search tree T has three basic cases, but,
+as we shall see, one of the cases is a bit tricky (a sub case of the third case).
 
 1. If z has no children, then we simply remove it by modifying its parent to replace z with NIL as its child.
 
@@ -872,23 +882,24 @@ template<class Key, class Value> bool bstree<Key, Value>::remove(Key key) noexce
 
   // There are three cases to consider:
  
-  // Case 1: If both children are NIL, we can simply delete the node. 
-  if (!pnode->left && !pnode->right) 
+  // Case 1: If both children are NIL, we can simply delete the node (which sets it to NIL). 
+  if (!pnode->left && !pnode->right) { 
       pnode.reset();    
 
-  // Case 2: If the node has just one child, then we elevate that child to take pnode's position in the tree
+  // Case 2: pnode has just one child, thus we elevate that child to take pnode's position in the tree
   // by modifying pnode's parent to replace pnode by it's child.
-  else if (pnode->left || pnode->right) {       
+  } else if (pnode->left || pnode->right) {       
 
       std::unique_ptr<Node>& onlyChild = pnode->left ? pnode->left : pnode->right;
 
-      onlyChild->parent = pnode->parent; // Before the assignment below, we make pnode's parent the parent of onlyChild.
+      onlyChild->parent = pnode->parent; // Before the move-assignment below, we adjust the parent of onlyChild to 
+                                         // pnode's parent.
 
       pnode = std::move(onlyChild);      // Replace pnode with its only non-NIL child.
       
   } else { // (pnode->left && p->right) == true
       /*
-       Case 3: Both children are non-NIL. We find pnode's successor y, which lies in pnode's right subtree and has no left child.
+       Case 3: Both children are non-NIL. We find pnode's successor y, which we know lies in pnode's right subtree and has no left child.
        We want to splice y out of its current location and have it replace pnode in the tree. There are two cases to consider:
       
        1. If y is pnode's right child, then we replace pnode by y, leaving y’s right child alone. Easy case.
@@ -896,15 +907,16 @@ template<class Key, class Value> bool bstree<Key, Value>::remove(Key key) noexce
        2. Otherwise, y lies within pnode's right subtree but is not pnode's right child (part (d)). In this case, we first
           replace y by its own right child, and then we replace pnode by y.
       */
-      auto y = getSuccessor(pnode.get());  
 
-      if (y == pnode->right.get()) { // sub-case 1: successor is right child (and the successor has no left child)
+      if (!pnode->right->left) { // sub-case 1: Since pnode->right->left is NIL, we know pnode->right is the successor
 
           pnode->right->parent = pnode->parent;
  
           pnode = std::move(pnode->right); // Transfers the underlying Node memory at right child to pnode, which deletes pnode's underlying Node.
 
       } else  { // successor y lies within pnode's right subtree (mention why we are certain of this) but is not pnode's right child. In this case, we first replace the successor by its own right child, and then we replace pnode by y.
+
+          std::unique_ptr<Node>& y = min(pnode->right); // We know, since pnode->right != NIL, the successor is in right subtree
       }
  }  
 
