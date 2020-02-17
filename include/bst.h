@@ -878,10 +878,14 @@ update v.left and v.right; doing so, or not doing so, is the responsibility of T
 
 Questions:
 The node to remove is pnode, found by find(root, key). 
+Q: Is this algorithm the same technique as the 2nd edition, only slightly reworked? Is it the same as the Corrano algorithm?
+
+Carrano C++ cource code is at https://homepage.cs.uri.edu/~thenry/resources/wall-mirrors-5%20src/Doxygen/c10/BST/BST_8cpp-source.html
+Read his book and compare the algorithm to the CLRS algorithm.
+
 Q: Does the Transplant method apply to C++ (where there is no garabag collection, and we have to manually delete the memory)?
 A: We need to fundamentally understand the algorithm annd not blindly  "believe" it does and translate it to C++. The main remove code
 below, for example, does call transplant.
-Q: Is the algorithm the same technique as the 2nd edition, only slightly reworked? Is it the same as the Corrano algorithm?
 
 */
 template<class Key, class Value> bool bstree<Key, Value>::remove(Key key) noexcept
