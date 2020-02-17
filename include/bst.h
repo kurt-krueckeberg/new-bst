@@ -69,7 +69,7 @@ template<class Key, class Value> class bstree {
 
        ~Node() = default;
        
-               std::ostream& print(std::ostream& ostr) const noexcept; 
+        std::ostream& print(std::ostream& ostr) const noexcept; 
 
         std::ostream& debug_print(std::ostream& ostr) const noexcept;
 
@@ -170,7 +170,7 @@ template<class Key, class Value> class bstree {
     const Node *min(const Node *current) const noexcept;
    
     Node *getSuccessor(const Node *current) const noexcept;
-   
+
     std::unique_ptr<Node>& get_unique_ptr(Node *pnode) noexcept;
 
     std::pair<bool, const Node *> findNode(const key_type& key, const Node *current) const noexcept; 
@@ -180,8 +180,12 @@ template<class Key, class Value> class bstree {
     bool isBalanced(const Node *pnode) const noexcept;
 
     void move(bstree<Key, Value>&& lhs) noexcept;
-    
+
+    /*-- Changed to return unique_ptr
     Node *find(Key key, const std::unique_ptr<Node>&) const noexcept;
+     */
+
+    std::unique_ptr<Node>& find(Key key, const std::unique_ptr<Node>&) const noexcept;
 
     void destroy_subtree(std::unique_ptr<Node>& subtree_root) noexcept;
 
@@ -607,10 +611,21 @@ template<class Key, class Value> void bstree<Key, Value>::destroy_subtree(std::u
 /*
  * Algorithm taken from page 290 of Introduction to Algorithms by Cormen, 3rd Edition, et. al.
  */
+/*-- Change to return unique_ptr<Node>
 template<class Key, class Value> typename bstree<Key, Value>::Node *bstree<Key, Value>::find(Key key, const std::unique_ptr<Node>& current) const noexcept
 {
   if (!current || current->key() == key)
      return current.get();
+  if (key < current->key())
+     return find(key, current->left);
+  else return find(key, current->right);
+}
+*/
+
+template<class Key, class Value> std::unique_ptr<typename bstree<Key, Value>::Node>& bstree<Key, Value>::find(Key key, const std::unique_ptr<Node>& current) const noexcept
+{
+  if (!current || current->key() == key)
+     return current;
   if (key < current->key())
      return find(key, current->left);
   else return find(key, current->right);
@@ -648,27 +663,55 @@ template<class Key, class Value> const typename bstree<Key, Value>::Node *bstree
 }
 
 /*
-  If the right subtree of node current is nonempty, then the successor of x is just the left-most node in the right subtree, which is found by calling min(current.right.get()). 
-  On the other hand, if the right subtree of node x is empty and x has a successor y, then y is the lowest ancestor of x whose left child is also an ancestor of x.
-  Returns: The pointer to successor node or nullptr if there is no successor (because the input node was the largest in the tree)
+  If the right subtree of node current is nonempty, then the successor of x is min(current.right). But if current->right is NIL, then the successor (which exists unless current holds the maximum key)
+  is the lowest ancestor of x whose left child is also an ancestor of x.
+
+  Returns: The pointer to successor node. If there is no successor, then the unique_ptr is NIL.
  
+template<class Key, class Value> std::unique_ptr<typename bstree<Key, Value>::Node>& bstree<Key, Value>::getSuccessor(const std::unique_ptr<typename bstree<Key, Value>::Node>& current) const noexcept
+{
+  if (!current->right) 
+      return min(current->right);
+
+  Node *parent = current->parent;
+  Node *child = current;
+
+  // To find the smallest ancestor of child whose left child is also an ancestor of chlid, we ascend the parent chain until we find a node that is a left child.
+  // If its parent is nullptr, then there we are at the root and there is no successor.  
+  while(parent && child == parent->right.get()) {
+
+       child = ancestor;
+
+       parent = parent->parent;
+  }
+
+  return parent;
+}
+ */
+
+/*
+ * If the right subtree of node current is nonempty, then the successor of x is min(current.right). But if current->right is NIL, then the successor (which exists unless current holds the maximum key)
+ * is the lowest ancestor of x whose left child is also an ancestor of x.
+ *
+ * Returns: The pointer to successor node. If there is no successor, then the unique_ptr is NIL.
  */
 template<class Key, class Value>  typename bstree<Key, Value>::Node* bstree<Key, Value>::getSuccessor(const typename bstree<Key, Value>::Node *current) const noexcept
 {
   if (current->right != nullptr) 
       return min(current->right.get());
 
-  Node *ancestor = current->parent;
+  Node *parent = current->parent;
 
-  // find the smallest ancestor of current whose left child is also an ancestor of current (by ascending the ancestor chain until we find the first ancestor that is a left child).
-  while(ancestor && current == ancestor->right.get()) {
+  // To find the smallest parent of child whose left child is also an ancestor of current, we ascend the parent chain until we find a node that is a left child.
+  // If its parent is nullptr, then there we are at the root and there is no successor.  
+  while(parent && current == parent->right.get()) {
 
-       current = ancestor;
+       current = parent;
 
-       ancestor = ancestor->parent;
+       parent = parent->parent;
   }
 
-  return ancestor;
+  return parent;
 }
 
 template<class Key, class Value>  
@@ -823,38 +866,42 @@ update v.left and v.right; doing so, or not doing so, is the responsibility of T
 */
 template<class Key, class Value> bool bstree<Key, Value>::remove(Key key) noexcept
 {
-  Node *pfound = find(key, root);
+  //--Node *pfound = find(key, root);
+  std::unique_ptr<Node>& pnode = find(key, root);
   
-  if (pfound == nullptr) return false;
+  if (!pnode) return false;
 
   // Get the managing unique_ptr<Node> whose underlying raw point is node? 
-  std::unique_ptr<Node>& pnode = get_unique_ptr(pfound);
+  //--std::unique_ptr<Node>& pnode = get_unique_ptr(pfound);
 
-  // There are three cases to consider 
-  // case 1: If both children are nullptr, we can simply delete pnode. 
-  if (!pnode->left && !pnode->right) {
+  // There are three cases to consider:
+ 
+  // case 1: If both children are NIL, we can simply delete the node. 
+  if (!pnode->left && !pnode->right) 
       pnode.reset();    
-         
-  } else if (pnode->left || pnode->right) { // Case 2:If pnode has just one child, then we elevate that child to take pnode's position in the tree
-                                           // by modifying pnode's parent to replace pnode by it's child.
-      Node *parent = pnode->parent;
-            
-      pnode = std::move(pnode->left);
-      
-      pnode->parent = parent;
 
+  // Case 2: If the node has just one child, then we elevate that child to take pnode's position in the tree
+  // by modifying pnode's parent to replace pnode by it's child.
+  else if (pnode->left || pnode->right) {       
+
+      std::unique_ptr<Node>& onlyChild = pnode->left ? pnode->left : pnode->right;
+
+      onlyChild->parent = pnode->parent; // Before the assignment below, we make pnode's parent the parent of onlyChild.
+
+      pnode = std::move(onlyChild);      // Replace pnode with its only non-NIL child.
+      
   } else { // (pnode->left && p->right) == true
       /*
-       Otherwise, pnode has both a left and a right child. We find pnode's successor y, which lies in pnode's right subtree
+       Case 3: pnode has two non-NIL children. We find pnode's successor y, which lies in pnode's right subtree
        and has no left child. We want to splice y out of its current location and have it replace pnode in the tree. There are
-       two cases o consider:
+       two cases to consider:
       
-       1. If y is pnode's right child, then we replace pnode by y, leaving y’s right child alone.
+       1. If y is pnode's right child, then we replace pnode by y, leaving y’s right child alone. Easy case.
       
        2. Otherwise, y lies within pnode's right subtree but is not pnode's right child (part (d)). In this case, we first
           replace y by its own right child, and then we replace pnode by y.
       */
-      auto successor = getSuccessor(pnode.get());
+      auto successor = getSuccessor(pnode.get()); // <-- This is Case 3.1, I believe.
 
       pnode->__vt = std::move(successor->__vt);  // move the successor's key and value into pnode. Do not alter pnode's parent or left and right children.
       
