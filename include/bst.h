@@ -80,7 +80,19 @@ template<class Key, class Value> class bstree {
         }
         
         Node& operator=(Node&&) noexcept;
-        
+
+        void connectLeft(std::unique_ptr<Node>& node) noexcept
+        {
+            left = std::move(node);
+            left->parent = this;
+        }  
+
+        void connectRight(std::unique_ptr<Node>& node) noexcept 
+        {
+            left = std::move(node);
+            left->parent = this;
+        }  
+
     private:
 
         __value_type<Key, Value> __vt;  // Convenience wrapper for std::pair<const Key, Value>
