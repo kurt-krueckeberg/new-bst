@@ -10,8 +10,8 @@ only the three main cases, while the 3rd edition further divides the 3rd case in
 * delete pseudo code in `CLRS, 2nd edtion <http://staff.ustc.edu.cn/~csli/graduate/algorithms/book6/chap13.htm>`_ 
 * delete pseudo code in `CLRS, 3rd edition <http://ressources.unisciel.fr/algoprog/s00aaroot/aa00module1/res/%5BCormen-AL2011%5DIntroduction_To_Algorithms-A3.pdf>`_
 
-And furthermore, is the delete algorithm essentially that same in technique as the Carrano algorithm (see textbook)? Are the only differents in implementation details, ane the same as that discussed by Sedgwich at
-https://algs4.cs.princeton.edu/32bst/ and https://algs4.cs.princeton.edu/lectures/32BinarySearchTrees.pdf?
+The real question is, is the delete algorithm essentially that same in technique as the Carrano algorithm (see textbook)? Are the only differents in implementation details. Liekwies, is the CLRS algorithm the same as the one
+discussed by Sedgwich at https://algs4.cs.princeton.edu/32bst/ and https://algs4.cs.princeton.edu/lectures/32BinarySearchTrees.pdf? It seems to be.
 
 alternate implementation of bst
 -------------------------------

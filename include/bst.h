@@ -995,34 +995,36 @@ template<class Key, class Value> bool bstree<Key, Value>::remove(Key key) noexce
 
       std::unique_ptr<Node>& onlyChild = pnode->left ? pnode->left : pnode->right;
 
-      onlyChild->parent = pnode->parent; // Before the move-assignment below, first set the parent of onlyChild to 
+      onlyChild->parent = pnode->parent; // Before the move-assignment, we set onlyChild->parent to 
                                          // pnode's parent.
 
-      pnode = std::move(onlyChild);      // Replace pnode with its only non-NIL child.
+      pnode = std::move(onlyChild);      // Replace pnode by move-assignmetn with its only non-NIL child, thus, deleting pnode.
       
   } else { // (pnode->left && p->right) == true
       /*
        Case 3: Both children are non-NIL. We find pnode's successor y, which we know lies in pnode's right subtree and has no left child.
        We want to splice y out of its current location and have it replace pnode in the tree. There are two cases to consider:
       
-       1. If y is pnode's right child, then we replace pnode by y, leaving y’s right child alone. Easy case.
+       1. The easier case is, if y is pnode's right child, then we replace pnode by y, leaving y’s right child alone. Easy case.
       
        2. Otherwise, y lies within pnode's right subtree but is not pnode's right child (part (d)). In this case, we first
           replace y by its own right child, and then we replace pnode by y.
       */
 
-      if (!pnode->right->left) { // sub-case 1: Since pnode->right->left is NIL, we know pnode->right is the successor
+      if (!pnode->right->left) { // sub-case 1: Since pnode->right->left is NIL, we know the successor must be pnode->right.
 
-          pnode->right->parent = pnode->parent;
+          pnode->right->parent = pnode->parent; // Before the move-assignment of pnode with pnode->right, adjust pnode->right->parent
+                                                // to be pnode's parent  
  
-          pnode = std::move(pnode->right); // Transfers the underlying Node memory at right child to pnode, which deletes pnode's underlying Node.
+          pnode = std::move(pnode->right); // move-assign pdnoe with its right child, thus, deleting pnode.
 
       } else  { 
-           // successor y lies within pnode's right subtree (but is not pnode's right child). In this case, we first
-           // replace the successor by its own right child, and then we replace pnode by y.
+           // Because pnode has two children, we know its successor y lies within pnode's right subtree.
 
-          std::unique_ptr<Node>& y = min(pnode->right); // Because we know pnode->right != NIL, we know the successor is in right subtree, so we call
-                                                        // min(pnode->right). 
+          std::unique_ptr<Node>& y = min(pnode->right); // In this case, we first replace the successor by its own right child, and then we replace pnode by y.
+          //TODO: The Carrano algorithm ProcessLeft() seems the analogue of transplant. Create illustrations of how each other describes the net result of the 
+          // algorithm.  
+
           //....
       }
  }  
