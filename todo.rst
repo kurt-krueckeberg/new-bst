@@ -1,5 +1,5 @@
-Implement delete
-================
+delete implementation
+=====================
 
 Things to Figure Out
 --------------------
