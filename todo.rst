@@ -13,7 +13,7 @@ only the three main cases, while the 3rd edition further divides the 3rd case in
 The real question is, is the delete algorithm essentially that same in technique as the Carrano algorithm (see textbook)? Are the only differents in implementation details. Liekwies, is the CLRS algorithm the same as the one
 discussed by Sedgwich at https://algs4.cs.princeton.edu/32bst/ and https://algs4.cs.princeton.edu/lectures/32BinarySearchTrees.pdf? It seems to be.
 
-The prospective implementation utilizes unique_ptr::swap and, if needed, recursively calls remove(key, unique_ptr&);
+The prospective implementation utilizes unique_ptr::swap(...); 
 
 alternate implementation of bst
 -------------------------------
