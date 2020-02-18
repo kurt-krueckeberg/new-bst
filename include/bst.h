@@ -1002,11 +1002,9 @@ template<class Key, class Value> void bstree<Key, Value>::transplant(std::unique
    // release right child of pnode
     std::unique_ptr<Node> r{  std::move( pnode->right.release() ) }; 
 
-   // We know r->left == suc, but why? And if r->left is the in-order successor, 
-   // r->left.release() will cause reference y to dangle, however? 
-    r->left.release();              
+    r->left.release(); // BUG: Causes suc to dangle because r->left == suc.
 
-    r->connectLeft(suc->right);
+    r->connectLeft(suc->right);  // suc->right is x
 
     suc->connectRight(r);
 
