@@ -220,6 +220,7 @@ template<class Key, class Value> class bstree {
     
     const std::unique_ptr<Node>& get_ceiling(const std::unique_ptr<Node>& current, Key key) const noexcept;
 
+    void transplant(std::unique_ptr<Node>& pnode, std::unique_ptr<Node>& y) noexcept;
   public:
 /*
 
@@ -899,7 +900,38 @@ Q: Does the Transplant method apply to C++ (where there is no garabag collection
 A: We need to fundamentally understand the algorithm annd not blindly  "believe" it does and translate it to C++. The main remove code
 below, for example, does call transplant.
 
-*/
+unique_ptr<> methods:
+
+ Node *pnode.>release(); // relinquishes ownership
+ pnode.swap(pother);     // swaps raw pointers
+ move assignment
+
+////////////////////////
+pseudocode
+
+   if (!u->parent)                // case 1: u root is the root
+       root = v; 
+   else if (u == u->parent->left) // case 2: u is left child of its parent
+      u->parent->left = v; 
+   else                           // case 3: u is the right child of its parent
+      u->parent->right = v; 
+   if (v)                         // If v != NIL, update its parent 
+      v->parent = u->parent 
+
+/// Implementation
+
+   if (!u->parent)                // case 1: u root is the root
+       root = std::move(v);      
+   else if (u == u->parent->left) // case 2: u is left child of its parent
+       u->parent->left = v; 
+   else                           // case 3: u is the right child of its parent
+       u->parent->right = v; 
+   if (v)                         // If v != NIL, update its parent 
+      v->parent = u->parent 
+
+
+}
+ */
 template<class Key, class Value> bool bstree<Key, Value>::remove(Key key) noexcept
 {
   std::unique_ptr<Node>& pnode = find(key, root);
@@ -953,6 +985,37 @@ template<class Key, class Value> bool bstree<Key, Value>::remove(Key key) noexce
   --size; 
 
   return true; 
+}
+
+/*
+transplant replaces one subtree rooted at pnode as a child of its parent with another subtree rooted a y.
+transplant does not update v.left or v.right <-- Well, I did update them.
+ */
+
+template<class Key, class Value> void bstree<Key, Value>::transplant(std::unique_ptr<Node>& pnode, std::unique_ptr<Node>& y) noexcept
+{
+   // Save this setting for the end of method
+    Node *pnode_parent = pnode->parent;
+
+    auto is_left_child = pnode->parent->left == pnode ? true : false;
+
+   // release right child of pnode
+    Node *r = pnode->right.release(); 
+
+   // release in-order successor since r->left.release() == y.get(), the in-order successor
+   // Q: Does this make the reference y dangle?
+    r->left.release();              
+
+    r->connectLeft(y->right);
+
+    std::unique_ptr<Node> node_r = std::make_unique<Node>(r);
+
+    y->connectRight(node_r);
+
+   if (is_left_child)
+       pnode_parent->connectLeft(y);
+   else 
+       pnode_parent->connectRight(y); 
 }
 
 template<class Key, class Value> inline int bstree<Key, Value>::height() const noexcept
@@ -1017,48 +1080,6 @@ template<class Key, class Value> bool bstree<Key, Value>::isBalanced(const Node*
 
    return (diff == 1 || diff ==0) ? true : false; // return true is absolute value is 0 or 1.
 }
-
-/*
-transplant replaces one subtree rooted at u as a child of its parent with another subtree rooted a v.
-transplant does not update v.left or v.right
- */
-/*
-template<class Key, class Value> void bstree<Key, Value>::transplant(std::unique_ptr<Node>& u, std::unique_ptr<Node>& v)
-{
-/*
-
-unique_ptr<> methods:
-
- Node *pnode.>release(); // relinquishes ownership
- pnode.swap(pother);     // swaps raw pointers
- move assignment
-
-////////////////////////
-pseudocode
-
-   if (!u->parent)                // case 1: u root is the root
-       root = v; 
-   else if (u == u->parent->left) // case 2: u is left child of its parent
-      u->parent->left = v; 
-   else                           // case 3: u is the right child of its parent
-      u->parent->right = v; 
-   if (v)                         // If v != NIL, update its parent 
-      v->parent = u->parent 
-
-/// Implementation
-
-   if (!u->parent)                // case 1: u root is the root
-       root = std::move(v);      
-   else if (u == u->parent->left) // case 2: u is left child of its parent
-       u->parent->left = v; 
-   else                           // case 3: u is the right child of its parent
-       u->parent->right = v; 
-   if (v)                         // If v != NIL, update its parent 
-      v->parent = u->parent 
-
-
-}
- */
 
 
 // Visits each Node, testing whether it is balanced. Returns false if any node is not balanced.
