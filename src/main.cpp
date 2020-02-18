@@ -41,14 +41,20 @@ int main(int argc, char** argv)
 
   cout << "ceilling(41) = " << tree.ceiling(41) << '\n';
 
-/*
   auto printer_debug = [](const auto& pr) {
       const auto&[key, value] = pr;
       cout << key << ", ";
   };
 
   tree.printlevelOrder(cout, key_printer);
-*/
+
+  for (auto& x : lst) {
+
+     cout << "tree.remove(" << x << ")\n";
+     tree.remove(x);
+     tree.printlevelOrder(cout, key_printer);
+  } 
+
   return 0;
   /*      
   cout << "This is the input tree " << tree << " printed in debug level order:\n";

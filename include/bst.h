@@ -190,7 +190,7 @@ template<class Key, class Value> class bstree {
     void copy_tree(const bstree<Key, Value>& lhs) noexcept;
 
     //--const Node *min(const Node *current) const noexcept;
-    std::unique_ptr<Node>& min(const std::unique_ptr<Node>& current) const noexcept;
+    std::unique_ptr<Node>& min(std::unique_ptr<Node>& current) const noexcept;
    
     Node *getSuccessor(const Node *current) const noexcept;
 
@@ -208,7 +208,7 @@ template<class Key, class Value> class bstree {
     Node *find(Key key, const std::unique_ptr<Node>&) const noexcept;
      */
 
-    std::unique_ptr<Node>& find(Key key, const std::unique_ptr<Node>&) const noexcept;
+    std::unique_ptr<Node>& find(Key key, std::unique_ptr<Node>&) const noexcept;
 
     void destroy_subtree(std::unique_ptr<Node>& subtree_root) noexcept;
 
@@ -650,7 +650,7 @@ template<class Key, class Value> typename bstree<Key, Value>::Node *bstree<Key, 
 }
 */
 
-template<class Key, class Value> std::unique_ptr<typename bstree<Key, Value>::Node>& bstree<Key, Value>::find(Key key, const std::unique_ptr<Node>& current) const noexcept
+template<class Key, class Value> std::unique_ptr<typename bstree<Key, Value>::Node>& bstree<Key, Value>::find(Key key, std::unique_ptr<Node>& current) const noexcept
 {
   if (!current || current->key() == key)
      return current;
@@ -690,11 +690,11 @@ template<class Key, class Value> const typename bstree<Key, Value>::Node *bstree
   return current;  
 }
 */
-template<class Key, class Value> std::unique_ptr<typename bstree<Key, Value>::Node>& bstree<Key, Value>::min(const std::unique_ptr<typename bstree<Key, Value>::Node>& current) const noexcept
+template<class Key, class Value> std::unique_ptr<typename bstree<Key, Value>::Node>& bstree<Key, Value>::min(std::unique_ptr<typename bstree<Key, Value>::Node>& current) const noexcept
 {
   while (current->left) {
 
-       current = current->left;
+       min(current->left);
   } 
 
   return current;  
