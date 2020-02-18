@@ -1,0 +1,47 @@
+/*
+CLRS, 2nd Edition
+
+tree-delete(z)
+
+  // 1. Determine node y to splice out. It is either the input node z (if z has only one child), or
+  // its successor, if y has two children.
+
+  if z->left == NIL or z->right == NIL // case 1: z has only one child
+
+      y =  z
+
+  else                                // case 2: z is an internal node 
+
+      y = tree-successor(z)
+
+  // 2. Set x is to the non-NIL child of y, or to NIL if y has no children.
+  if y->left !=  NIL    // If the sucessor is above z, the y->left will not be NIL, or if z              
+
+      x = y->left
+
+  else
+ 
+      x = y->right  // y->left was NIL 
+
+  if x != NIL
+
+     x->parent = y->parent 
+
+  if y->parent == NIL
+
+      root = x
+
+  else if y == y->parent->left
+
+      y->parent->left = x
+
+  else
+
+      y->parent->right =  x
+
+  if y != z
+
+      z->key = y->key // If y has other fields, copy them, too.
+
+   return y
+*/

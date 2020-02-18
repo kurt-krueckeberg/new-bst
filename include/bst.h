@@ -684,37 +684,11 @@ template<class Key, class Value> std::unique_ptr<typename bstree<Key, Value>::No
 
   return current;  
 }
-/*
-  If the right subtree of node current is nonempty, then the successor of x is min(current.right). But if current->right is NIL, then the successor (which exists unless current holds the maximum key)
-  is the lowest ancestor of x whose left child is also an ancestor of x.
-
-  Returns: The pointer to successor node. If there is no successor, then the unique_ptr is NIL.
- 
-template<class Key, class Value> std::unique_ptr<typename bstree<Key, Value>::Node>& bstree<Key, Value>::getSuccessor(const std::unique_ptr<typename bstree<Key, Value>::Node>& current) const noexcept
-{
-  if (!current->right) 
-      return min(current->right);
-
-  Node *parent = current->parent;
-  Node *child = current;
-
-  // To find the smallest ancestor of child whose left child is also an ancestor of chlid, we ascend the parent chain until we find a node that is a left child.
-  // If its parent is nullptr, then there we are at the root and there is no successor.  
-  while(parent && child == parent->right.get()) {
-
-       child = ancestor;
-
-       parent = parent->parent;
-  }
-
-  return parent;
-}
- */
 
 /*
- The code for tree-successor is broken into two cases. If the right subtree of node x is nonempty, then the successor of x is just the left-most node in the right subtree, which is found by calling min(x->right). 
- On the other hand, if the right subtree of node x is empty and x has a successor y, then y is the lowest ancestor of x whose left child is also an ancestor of x. To find y, we simply go up the tree from x until
- we encounter a node that is the left child of its parent.
+ The code for tree-successor is broken into two cases. If the right subtree of node x is nonempty, then the successor of x is just the left-most node in the right subtree, which is found
+ by calling min(x->right). On the other hand, if the right subtree of node x is empty and x has a successor y, then y is the lowest ancestor of x whose left child is also an ancestor of x.
+ To find y, we simply go up the tree from x until we encounter a node that is the left child of its parent.
 
  Pseudo code 
 
@@ -724,7 +698,7 @@ template<class Key, class Value> std::unique_ptr<typename bstree<Key, Value>::No
   
        return min(x->right)
   
-   y = x->parnet
+   y = x->parent
   
    while (y != NIL and x = y->right)
   
@@ -848,10 +822,61 @@ template<class Key, class Value> bool bstree<Key, Value>::insert_or_assign(const
 }
 
 /*
- * See Algorithm on page 295 of Introduction to Alogorithm, 3rd Edition by Cormen, et. al
 
-Deletion
-========
+Deletion CLRS, 2nd Edition
+============================
+
+CLRS, 2nd Edition,http://staff.ustc.edu.cn/~csli/graduate/algorithms/book6/chap13.htm 
+
+Algorithm pseudo code like that below seems to become confusing when you use C++. The pseudo code doesn't translate to, say, use of std::unique_ptr.
+
+tree-delete(z)
+
+  // 1. Determine node y to splice out. It is either the input node z (if z has only one child), or
+  // its successor, if y has two children.
+
+  if z->left == NIL or z->right == NIL // case 1: z has only one child
+
+      y =  z
+
+  else                                // case 2: z is an internal node 
+
+      y = tree-successor(z)
+
+  // 2. Set x is to the non-NIL child of y, or to NIL if y has no children.
+  if y->left !=  NIL    // If the sucessor is above z, the y->left will not be NIL, or if z              
+
+      x = y->left
+
+  else
+ 
+      x = y->right  // y->left was NIL 
+
+  if x != NIL
+
+     x->parent = y->parent 
+
+  if y->parent == NIL
+
+      root = x
+
+  else if y == y->parent->left
+
+      y->parent->left = x
+
+  else
+
+      y->parent->right =  x
+
+  if y != z
+
+      z->key = y->key // If y has other fields, copy them, too.
+
+   return y
+
+
+Deletion CLRS, 3rd Edition
+==========================
 
 The overall strategy for deleting a node z from a binary search tree T has three basic cases, but,
 as we shall see, one of the cases is a bit tricky (a sub case of the third case).
