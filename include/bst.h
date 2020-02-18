@@ -1025,6 +1025,7 @@ template<class Key, class Value> bool bstree<Key, Value>::remove(Key key) noexce
           //TODO: The Carrano algorithm ProcessLeft() seems the analogue of transplant. Create illustrations of how each other describes the net result of the 
           // algorithm.  
 
+          fix_subtree(pnode, y); // same algorithm as transplant.
           //....
       }
  }  
