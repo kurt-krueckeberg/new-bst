@@ -189,8 +189,13 @@ template<class Key, class Value> class bstree {
 
     void copy_tree(const bstree<Key, Value>& lhs) noexcept;
 
-    //--const Node *min(const Node *current) const noexcept;
-    std::unique_ptr<Node>& min(std::unique_ptr<Node>& current) const noexcept;
+    Node *min(std::unique_ptr<Node>& current) const noexcept
+    {
+        return min(current.get());
+    }
+
+    Node *min(Node *current) const noexcept;
+    //std::unique_ptr<Node>& min(std::unique_ptr<Node>& current) const noexcept;
    
     Node *getSuccessor(const Node *current) const noexcept;
 
@@ -679,22 +684,12 @@ template<class Key, class Value> std::pair<bool, const typename bstree<Key, Valu
   
   return {false, parent}; 
 }
-/*
-template<class Key, class Value> const typename bstree<Key, Value>::Node *bstree<Key, Value>::min(const typename bstree<Key, Value>::Node *current) const noexcept
+
+template<class Key, class Value> typename bstree<Key, Value>::Node *bstree<Key, Value>::min(typename bstree<Key, Value>::Node *current) const noexcept
 {
   while (current->left != nullptr) {
 
        current = current->left.get();
-  } 
-
-  return current;  
-}
-*/
-template<class Key, class Value> std::unique_ptr<typename bstree<Key, Value>::Node>& bstree<Key, Value>::min(std::unique_ptr<typename bstree<Key, Value>::Node>& current) const noexcept
-{
-  while (current->left) {
-
-       min(current->left);
   } 
 
   return current;  
@@ -1006,25 +1001,17 @@ template<class Key, class Value> bool bstree<Key, Value>::remove(Key key, std::u
 
   // Case 2: pnode has just one child, thus we elevate that child to take pnode's position in the tree
   // by modifying pnode's parent to replace pnode by it's child.
-  else if (pnode->left || pnode->right) {       
 
-      std::unique_ptr<Node>& onlyChild = pnode->left ? pnode->left : pnode->right;
-
-      onlyChild->parent = pnode->parent; // Before the move-assignment, we set onlyChild->parent to 
-                                         // pnode's parent.
-
-      pnode = std::move(onlyChild);      // Replace pnode by move-assignmetn with its only non-NIL child, thus, deleting pnode.
-      
-  } else { // (pnode->left && p->right) == true
-      /*
-       Case 3: Both children are non-NIL. We find pnode's successor y, which we know lies in pnode's right subtree and has no left child.
-       We want to splice y out of its current location and have it replace pnode in the tree. There are two cases to consider:
-      
-       1. The easier case is, if y is pnode's right child, then we replace pnode by y, leaving y’s right child alone. Easy case.
-      
-       2. Otherwise, y lies within pnode's right subtree but is not pnode's right child (part (d)). In this case, we first
-          replace y by its own right child, and then we replace pnode by y.
-      */
+  /*
+   Case 2: Both children are non-NIL. We find pnode's successor y, which we know lies in pnode's right subtree and has no left child.
+   We want to splice y out of its current location and have it replace pnode in the tree. There are two cases to consider:
+  
+   1. The easier case is, if y is pnode's right child, then we replace pnode by y, leaving y’s right child alone. Easy case.
+  
+   2. Otherwise, y lies within pnode's right subtree but is not pnode's right child (part (d)). In this case, we first
+      replace y by its own right child, and then we replace pnode by y.
+  */
+  else if (pnode->left && pnode->right) {  // (pnode->left && p->right) == true
 
       if (!pnode->right->left) { // sub-case 1: Since pnode->right->left is NIL, we know the successor must be pnode->right.
 
@@ -1037,8 +1024,11 @@ template<class Key, class Value> bool bstree<Key, Value>::remove(Key key, std::u
 
           // Because pnode has two children, we know its successor y lies within pnode's right subtree.
 
-          std::unique_ptr<Node>& y = min(pnode->right); // In this case, we swap pnode's underlying pointer with y's underlying pointer, and then we replace pnode by it's right child, which before the 
+          Node *suc = min(pnode->right); // In this case, we swap pnode's underlying pointer with y's underlying pointer, and then we replace pnode by it's right child, which before the 
                                                         // swap was y's right child.
+
+          std::unique_ptr<Node>& y = suc->parent->left.get() == suc ? suc->parent->left : suc->parent->right;
+
           /*
           pnode.swap(y);    // Q: Doesn't y->parent need to be set?
           pnode = std::move(pnode->right);
@@ -1047,7 +1037,16 @@ template<class Key, class Value> bool bstree<Key, Value>::remove(Key key, std::u
           pnode->__vt = std::move(y->__vt); // move-assign successor's values to pnode's values. No pointers change
           y = std::move(y->right);          // Replace successor with its right child.
       }
- }  
+      
+  } else { // Case 3: pnode has only one child. 
+
+      std::unique_ptr<Node>& onlyChild = pnode->left ? pnode->left : pnode->right;
+
+      onlyChild->parent = pnode->parent; // Before the move-assignment, we set onlyChild->parent to 
+                                         // pnode's parent.
+
+      pnode = std::move(onlyChild);      // Replace pnode by move-assignmetn with its only non-NIL child, thus, deleting pnode.
+  }  
 
   --size; 
 
