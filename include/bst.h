@@ -1024,20 +1024,14 @@ template<class Key, class Value> bool bstree<Key, Value>::remove(Key key, std::u
           pnode = std::move(pnode->right); // move-assign pdnoe with its right child, thus, deleting pnode.
 
       } else  { 
-           // Because pnode has two children, we know its successor y lies within pnode's right subtree.
 
-          std::unique_ptr<Node>& y = min(pnode->right); // In this case, we first replace the successor by its own right child, and then we replace pnode by y.
+          // Because pnode has two children, we know its successor y lies within pnode's right subtree.
+
+          std::unique_ptr<Node>& y = min(pnode->right); // In this case, we swap pnode's underlying pointer with y's underlying pointer, and then we replace pnode by it's right child, which before the 
+                                                        // swap was y's right child.
 
           pnode.swap(y);    
-          pnode.swap(pnode->right);
-
-          if (!pnode->left && !pnode->right) // TODO: Decide if the recursive call is ever neeed or whether we can categorically delete pnode now.
-               pnode.reset();
-
-          else 
-               remove(pnode->key(), pnode); 
-                
-          //....
+          pnode = std::move(pnode->right);
       }
  }  
 
