@@ -988,34 +988,43 @@ template<class Key, class Value> bool bstree<Key, Value>::remove(Key key) noexce
 }
 
 /*
-transplant replaces one subtree rooted at pnode as a child of its parent with another subtree rooted a y.
+transplant replaces one subtree rooted at pnode as a child of its parent with another subtree rooted at suc(cessor).
 transplant does not update v.left or v.right <-- Well, I did update them.
  */
 
-template<class Key, class Value> void bstree<Key, Value>::transplant(std::unique_ptr<Node>& pnode, std::unique_ptr<Node>& y) noexcept
+template<class Key, class Value> void bstree<Key, Value>::transplant(std::unique_ptr<Node>& pnode, std::unique_ptr<Node>&suc) noexcept
 {
-   // Save this setting for the end of method
-    Node *pnode_parent = pnode->parent;
+   // Save for later 
+    Node *parent = pnode->parent;
 
-    auto is_left_child = pnode->parent->left == pnode ? true : false;
+    auto is_left_child = parent->left == pnode ? true : false;
 
    // release right child of pnode
-    Node *r = pnode->right.release(); 
+    std::unique_ptr<Node> r{  std::move( pnode->right.release() ) }; 
 
-   // release in-order successor since r->left.release() == y.get(), the in-order successor
-   // Q: Does this make the reference y dangle?
+   // We know r->left == suc, but why? And if r->left is the in-order successor, 
+   // r->left.release() will cause reference y to dangle, however? 
     r->left.release();              
 
-    r->connectLeft(y->right);
+    r->connectLeft(suc->right);
 
-    std::unique_ptr<Node> node_r = std::make_unique<Node>(r);
+    suc->connectRight(r);
 
-    y->connectRight(node_r);
+    // Save pnode's left child. It will become suc left child.
+    std::unique_ptr pnode_left{ std::move(pnode->left) }; 
 
-   if (is_left_child)
-       pnode_parent->connectLeft(y);
-   else 
-       pnode_parent->connectRight(y); 
+    if (is_left_child) {
+       
+       parent->connectLeft(suc);
+       
+    }
+    else {
+       parent->connectRight(suc); 
+
+    }
+
+    suc->connectLeft(pnode_left);
+    
 }
 
 template<class Key, class Value> inline int bstree<Key, Value>::height() const noexcept
