@@ -117,6 +117,16 @@ template<class Key, class Value> class bstree {
         { 
            return __vt.__get_value().second; 
         }
+        /*
+        constexpr const value_type& get_value() const nexcept
+        {
+           return __vt.__get_value();
+        } 
+        constexpr const value_type& get_value() const nexcept
+        {
+           return __vt.__get_value();
+        } 
+        */
     }; 
 
    template<typename Printer> class LevelOrderPrinter {
@@ -1029,9 +1039,13 @@ template<class Key, class Value> bool bstree<Key, Value>::remove(Key key, std::u
 
           std::unique_ptr<Node>& y = min(pnode->right); // In this case, we swap pnode's underlying pointer with y's underlying pointer, and then we replace pnode by it's right child, which before the 
                                                         // swap was y's right child.
-
-          pnode.swap(y);    
+          /*
+          pnode.swap(y);    // Q: Doesn't y->parent need to be set?
           pnode = std::move(pnode->right);
+           */
+
+          pnode->__vt = std::move(y->__vt); // move-assign successor's values to pnode's values. No pointers change
+          y = std::move(y->right);          // Replace successor with its right child.
       }
  }  
 
