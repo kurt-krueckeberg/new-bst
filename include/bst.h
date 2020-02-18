@@ -321,7 +321,12 @@ Some of the std::map insert methods:
 
     // TODO: Add emplace() methods and other methods like std::map have, like insert_or_assign().
 
-    bool remove(Key key) noexcept;
+    bool remove(Key key) noexcept
+    {
+        return remove(key, root);
+    } 
+ 
+    bool remove(Key key, std::unique_ptr<Node>& root) noexcept; // root of current subtree
 
     bool find(Key key) const noexcept
     {
@@ -977,9 +982,9 @@ pseudocode
 
 }
  */
-template<class Key, class Value> bool bstree<Key, Value>::remove(Key key) noexcept
+template<class Key, class Value> bool bstree<Key, Value>::remove(Key key, std::unique_ptr<Node>& root_sub) noexcept // root of subtree
 {
-  std::unique_ptr<Node>& pnode = find(key, root);
+  std::unique_ptr<Node>& pnode = find(key, root_sub);
   
   if (!pnode) return false;
 
@@ -1022,10 +1027,16 @@ template<class Key, class Value> bool bstree<Key, Value>::remove(Key key) noexce
            // Because pnode has two children, we know its successor y lies within pnode's right subtree.
 
           std::unique_ptr<Node>& y = min(pnode->right); // In this case, we first replace the successor by its own right child, and then we replace pnode by y.
-          //TODO: The Carrano algorithm ProcessLeft() seems the analogue of transplant. Create illustrations of how each other describes the net result of the 
-          // algorithm.  
 
-          fix_subtree(pnode, y); // same algorithm as transplant.
+          pnode.swap(y);    
+          pnode.swap(pnode->right);
+
+          if (!pnode->left && !pnode->right) // TODO: Decide if the recursive call is ever neeed or whether we can categorically delete pnode now.
+               pnode.reset();
+
+          else 
+               remove(pnode->key(), pnode); 
+                
           //....
       }
  }  
