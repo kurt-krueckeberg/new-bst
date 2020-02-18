@@ -11,3 +11,9 @@ only the three main cases, while the 3rd edition further divides the 3rd case in
 * delete pseudo code in `CLRS, 3rd edition <http://ressources.unisciel.fr/algoprog/s00aaroot/aa00module1/res/%5BCormen-AL2011%5DIntroduction_To_Algorithms-A3.pdf>`_
 
 And furthermore, is the delete algorithm essentially that same in technique as the Carrano algorithm (see textbook)? Are the only differents in implementation details?
+
+
+alternate implementation of bst
+-------------------------------
+
+Try Node::parent of type std::weak_ptr<NodeNode::parent of type std::weak_ptr<Node>. Does this enable returning std::unique_ptr<Node> uniformly from methods like getSuccessor, where currently we return a 'Node *'?

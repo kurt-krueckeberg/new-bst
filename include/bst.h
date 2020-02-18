@@ -712,23 +712,43 @@ template<class Key, class Value> std::unique_ptr<typename bstree<Key, Value>::No
  */
 
 /*
- * If the right subtree of node current is nonempty, then the successor of x is min(current.right). But if current->right is NIL, then the successor (which exists unless current holds the maximum key)
- * is the lowest ancestor of x whose left child is also an ancestor of x.
- *
- * Returns: The pointer to successor node. If there is no successor, then the unique_ptr is NIL.
- */
-template<class Key, class Value>  typename bstree<Key, Value>::Node* bstree<Key, Value>::getSuccessor(const typename bstree<Key, Value>::Node *current) const noexcept
+ The code for tree-successor is broken into two cases. If the right subtree of node x is nonempty, then the successor of x is just the left-most node in the right subtree, which is found by calling min(x->right). 
+ On the other hand, if the right subtree of node x is empty and x has a successor y, then y is the lowest ancestor of x whose left child is also an ancestor of x. To find y, we simply go up the tree from x until
+ we encounter a node that is the left child of its parent.
+
+ Pseudo code 
+
+ tree-successor(x)
+ {
+    if x->right ==  NIL
+  
+       return min(x->right)
+  
+   y = x->parnet
+  
+   while (y != NIL and x = y->right)
+  
+        x = y
+  
+        y = y->parent
+   }
+  
+   return y
+ }
+ 
+  */
+template<class Key, class Value>  typename bstree<Key, Value>::Node* bstree<Key, Value>::getSuccessor(const typename bstree<Key, Value>::Node *x) const noexcept
 {
-  if (current->right != nullptr) 
-      return min(current->right.get());
+  if (!x->right) 
+      return min(x->right);
 
-  Node *parent = current->parent;
+  Node *parent = x->parent;
 
-  // To find the smallest parent of child whose left child is also an ancestor of current, we ascend the parent chain until we find a node that is a left child.
+  // To find the smallest parent of child whose left child is also an ancestor of x, we ascend the parent chain until we find a node that is a left child.
   // If its parent is nullptr, then there we are at the root and there is no successor.  
-  while(parent && current == parent->right.get()) {
+  while(parent && x == parent->right.get()) {
 
-       current = parent;
+       x = parent;
 
        parent = parent->parent;
   }
